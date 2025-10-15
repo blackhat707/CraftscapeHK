@@ -8,18 +8,17 @@ import type { Craft, Product, Event, Order, Artisan, MessageThread } from '../ty
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const SIMULATED_DELAY = 500; // 500ms delay
 
-// --- API Key Management (Simulating AWS Secrets Manager) ---
-// This key is now "on the backend" and not accessible by the frontend.
-const API_KEY = process.env.API_KEY;
 
-if (!API_KEY) {
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+if (!GEMINI_API_KEY) {
   // In a real backend, this would throw an error during startup.
   // For the mock, we log a warning but allow it to proceed
   // to avoid crashing the frontend demo if the key isn't set.
-  console.warn("API_KEY environment variable not set. AI features will fail.");
+  console.warn('GEMINI_API_KEY environment variable not set. AI features will fail.');
 }
 
-const ai = new GoogleGenAI({ apiKey: API_KEY! });
+const ai = GEMINI_API_KEY ? new GoogleGenAI({ apiKey: GEMINI_API_KEY }) : undefined;
 
 
 // --- Mock API Endpoints ---
@@ -67,7 +66,7 @@ export const getMessageThreads = async (): Promise<MessageThread[]> => {
  * @returns A base64 encoded string of the generated JPEG image.
  */
 export const generateCraftImageApi = async (craftName: string, userPrompt: string): Promise<string> => {
-  if (!API_KEY) {
+  if (!ai) {
       throw new Error("The AI service is not configured on the server.");
   }
   try {
@@ -76,7 +75,7 @@ export const generateCraftImageApi = async (craftName: string, userPrompt: strin
     // Simulate a longer delay for AI generation
     await sleep(2000);
 
-    const response = await ai.models.generateImages({
+  const response = await ai.models.generateImages({
         model: 'imagen-4.0-generate-001',
         prompt: fullPrompt,
         config: {

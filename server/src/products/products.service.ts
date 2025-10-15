@@ -3,20 +3,21 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GoogleGenAI } from '@google/genai';
 import { Product } from '../entities/product.entity';
+import { getGeminiApiKey } from '../config/gemini.config';
 
 @Injectable()
 export class ProductsService {
-  private ai: GoogleGenAI;
+  private ai?: GoogleGenAI;
 
   constructor(
     @InjectRepository(Product)
     private productsRepository: Repository<Product>,
   ) {
-    const apiKey = process.env.API_KEY;
+    const apiKey = getGeminiApiKey();
     if (!apiKey) {
-      console.warn("API_KEY environment variable not set. AI features will fail.");
+      return;
     }
-    this.ai = new GoogleGenAI({ apiKey: apiKey! });
+    this.ai = new GoogleGenAI({ apiKey });
   }
 
   async findAll(): Promise<Product[]> {
@@ -32,14 +33,15 @@ export class ProductsService {
   }
 
   async generateCraftImage(craftName: string, userPrompt: string): Promise<{ imageUrl: string }> {
-    if (!process.env.API_KEY) {
+    const aiClient = this.ai;
+    if (!aiClient) {
       throw new Error("The AI service is not configured on the server.");
     }
 
     try {
       const fullPrompt = `A high-quality, artistic image of a modern interpretation of a traditional Hong Kong craft: ${craftName}. The design is inspired by: "${userPrompt}". Focus on intricate details and beautiful lighting.`;
 
-      const response = await this.ai.models.generateImages({
+      const response = await aiClient.models.generateImages({
         model: 'imagen-4.0-generate-001',
         prompt: fullPrompt,
         config: {

@@ -62,54 +62,69 @@ Craftscape HK is an **AI + AR e-commerce platform** where users can:
 1. **Clone the Project**
    ```bash
    git clone https://github.com/gracetyy/CraftscapeHK
-   cd GenAI_Hackathon
+   cd CraftscapeHK
    ```
 
 2. **Install Dependencies**
    ```bash
    npm install
    ```
+   > The root `postinstall` hook installs the NestJS backend in `server/` so you only run this once.
 
 3. **Set Environment Variables**
-   
-   **Option A: Using .env file (Recommended)**
+   Create a `.env` file in the repository root with the following content:
    ```bash
-   # Create a .env file in the root directory
-   echo "GOOGLE_AI_API_KEY=your_api_key" > .env
-   echo "GOOGLE_AI_IMAGE_MODEL=imagen-4.0-nano-banana-001" >> .env
+   GEMINI_API_KEY="<replace_this_with_your_api_key>"
    ```
-   
-   **Option B: Using system environment variables**
-   ```bash
-   # Windows
-   setx GOOGLE_AI_API_KEY "your_api_key"
-   setx GOOGLE_AI_IMAGE_MODEL "imagen-4.0-nano-banana-001"
-   
-   # macOS/Linux
-   export GOOGLE_AI_API_KEY="your_api_key"
-   export GOOGLE_AI_IMAGE_MODEL="imagen-4.0-nano-banana-001"
-   ```
+   Both the Vite app and the NestJS API will consume it.
 
-   > **Note**: The .env file method is simpler and doesn't require reopening terminals. Make sure to add `.env` to your `.gitignore` file to keep your API keys secure.
+   You may also put add this line to the `.env` file to override the model used in image generation (default: `imagen-4.0-generate-001`).
+   ```bash
+   GOOGLE_AI_IMAGE_MODEL="<replace_this_with_your_preferred_model_id>"
+   ```
 
 4. **Seed Database**
    ```bash
-   cd server && npm run seed
+   npm run server:seed
    ```
 
-5. **Start Backend**
+5. **Run the Full Stack with Auto-Restarting env files**
    ```bash
-   cd server && npm run start:dev
+   npm run dev:stack:watch
    ```
 
-6. **Start Frontend**
-   ```bash
-   npm run dev
-   ```
-
-7. **Access the Application**
+6. **Access the Application**
    - 🌐 **Frontend**: http://localhost:3000
    - 🚀 **Backend API**: http://localhost:3001/api
+
+### Helpful npm Scripts
+- `npm run dev:stack` – run frontend (`vite`) and backend (`nest start:dev`) together without env watching.
+- `npm run dev:stack:watch` – same as above but restarts both processes whenever `.env` files change.
+- `npm run build:stack` – produce production builds for the Vite app and the NestJS server in one step.
+- `npm run server:start` – boot the compiled NestJS server (`npm run server:build` first if needed).
+
+### AI Setup
+
+#### Environment variables
+- GEMINI_API_KEY — Google AI Studio API key
+- GOOGLE_AI_IMAGE_MODEL — optional override for Imagen model id
+
+Place the variable in your shell or a .env loaded by your process manager before starting the server.
+
+#### Images API (Imagen 4) access
+The endpoint api/ai/generate-image uses the Google GenAI SDK with model imagen-4.0-generate-001.
+Google’s Images API is not available on free keys. If you see: "Imagen API is only accessible to billed users at this time."
+
+Do this:
+1. Go to Google AI Studio > API Keys > Create or select your key
+2. Upgrade to a paid/billing-enabled key and ensure Images API access is enabled for that key
+3. Copy the key and export it as GEMINI_API_KEY on the server
+4. Restart the NestJS server
+
+#### Troubleshooting
+- 400 INVALID_ARGUMENT with billed-users message: your key isn’t Images-enabled. Use a paid AI Studio key.
+- 401 or 403: wrong key, missing export, or project/org restrictions.
+- Region errors: Images is only in certain regions; AI Studio routes automatically. Vertex requires explicit regions.
 
 ## License
 Released under the MIT License.

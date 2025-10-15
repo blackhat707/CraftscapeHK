@@ -7,11 +7,21 @@ import { Event } from '../entities/event.entity';
 import { Artisan } from '../entities/artisan.entity';
 import { Order } from '../entities/order.entity';
 import { MessageThread } from '../entities/message-thread.entity';
+import * as path from 'path';
+
+const envFilePath = [
+  path.resolve(process.cwd(), '.env.local'),
+  path.resolve(process.cwd(), '.env'),
+  path.resolve(process.cwd(), '..', '.env.local'),
+  path.resolve(process.cwd(), '..', '.env'),
+];
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath,
+      cache: true,
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
