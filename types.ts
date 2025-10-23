@@ -74,6 +74,26 @@ export interface ChatMessage {
     timestamp: string;
 }
 
+export interface FaceProfile {
+    id: string;
+    label: string;
+    imageUrl: string;
+    source: 'preset' | 'upload';
+    createdAt: string;
+}
+
+export interface TryOnLook {
+    id: string;
+    craftId: number;
+    craftName: string;
+    imageUrl: string;
+    faceId: string;
+    faceLabel: string;
+    prompt: string;
+    mode: 'cheongsam';
+    createdAt: string;
+}
+
 export interface MessageThread {
     id: string;
     customerName: string;

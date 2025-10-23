@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import type { Craft, TranslationOption } from '../types';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import type { Craft, TranslationOption, FaceProfile } from '../types';
 import { motion } from 'framer-motion';
 import { useAppContext } from '../contexts/AppContext';
 import { generateCraftImage } from '../services/geminiService';
@@ -22,6 +22,24 @@ const sleep = (ms: number) => new Promise<void>((resolve) => {
   setTimeout(resolve, ms);
 });
 
+const buildCheongsamTryOnPrompt = (face: FaceProfile, craft: Craft, userPrompt: string) => {
+  const detailLines = [
+    'Model directive: BANANA FASHION try-on, produce an elegant full-body portrait, cinematic lighting, 4k quality.',
+    `Garment focus: bespoke ${craft.name.en} with vintage Shanghainese tailoring, high mandarin collar, hand-bound pankou buttons, fluid silk drape.`,
+    'Pose: graceful stance, relaxed shoulders, confident smile.',
+    'Fabric styling: lustrous pearl-white silk with subtle floral embroidery, soft highlights, realistic folds.',
+    `Reference face: ${face.imageUrl}`,
+  ];
+
+  if (userPrompt.trim()) {
+    detailLines.push(`Personal styling notes: ${userPrompt.trim()}`);
+  }
+
+  detailLines.push('Keep body proportions natural, preserve face identity accurately, match skin tone and lighting between face and body.');
+
+  return detailLines.join('\n');
+};
+
 const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
   const [prompt, setPrompt] = useState('');
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
@@ -41,8 +59,14 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
   const [isSubmittingContact, setIsSubmittingContact] = useState(false);
   const [contactSuccess, setContactSuccess] = useState(false);
   const [shouldShowContactCTA, setShouldShowContactCTA] = useState(false);
-  const { addAiCreation } = useAppContext();
+  const [studioMode, setStudioMode] = useState<'concept' | 'try-on'>('concept');
+  const [selectedFaceId, setSelectedFaceId] = useState<string | null>(null);
+  const [isFaceUploading, setIsFaceUploading] = useState(false);
+  const [faceUploadError, setFaceUploadError] = useState<string | null>(null);
+  const faceFileInputRef = useRef<HTMLInputElement | null>(null);
+  const { addAiCreation, faceProfiles, activeFaceId, addFaceProfile, setActiveFace, addTryOnLook } = useAppContext();
   const { language, t } = useLanguage();
+  const isCheongsamCraft = craft.name.en.toLowerCase().includes('cheongsam');
   const isMahjongCraft = craft.category === 'mahjong' || craft.name.en.toLowerCase().includes('mahjong');
   const requiresTranslation = language === 'en' && isMahjongCraft;
   const translationStrategyLabels = useMemo(() => ({
@@ -60,6 +84,31 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
     setShouldShowContactCTA(false);
   }, [requiresTranslation, craft.id]);
 
+  useEffect(() => {
+    if (isCheongsamCraft) {
+      if (!selectedFaceId && activeFaceId) {
+        setSelectedFaceId(activeFaceId);
+      }
+    } else {
+      setStudioMode('concept');
+      setSelectedFaceId(null);
+    }
+  }, [isCheongsamCraft, activeFaceId, selectedFaceId]);
+
+  useEffect(() => {
+    if (!isCheongsamCraft) {
+      return;
+    }
+    setSelectedFaceId(activeFaceId);
+  }, [activeFaceId, isCheongsamCraft]);
+
+  const selectedFace = useMemo(
+    () => (selectedFaceId ? faceProfiles.find(face => face.id === selectedFaceId) ?? null : null),
+    [faceProfiles, selectedFaceId],
+  );
+
+  const isTryOnMode = isCheongsamCraft && studioMode === 'try-on';
+
   const handleSelectTranslation = useCallback((option: TranslationOption) => {
     setSelectedTranslation(option);
     setError(null);
@@ -76,17 +125,65 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
     }
   }, [requiresTranslation]);
 
+  const handleFaceSelect = useCallback((faceId: string) => {
+    setSelectedFaceId(faceId);
+    setActiveFace(faceId);
+    setFaceUploadError(null);
+  }, [setActiveFace]);
+
+  const handleTriggerFaceUpload = useCallback(() => {
+    faceFileInputRef.current?.click();
+  }, []);
+
+  const handleFaceUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    setIsFaceUploading(true);
+    setFaceUploadError(null);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const imageUrl = typeof reader.result === 'string' ? reader.result : '';
+      if (!imageUrl) {
+        setFaceUploadError(t('aiStudioFaceUploadError'));
+        setIsFaceUploading(false);
+        return;
+      }
+      const label = file.name.replace(/\.[^/.]+$/, '') || t('aiStudioUploadedFaceLabel');
+      const newId = addFaceProfile({
+        label,
+        imageUrl,
+        source: 'upload',
+      });
+      setSelectedFaceId(newId);
+      setIsFaceUploading(false);
+      event.target.value = '';
+    };
+    reader.onerror = () => {
+      setFaceUploadError(t('aiStudioFaceUploadError'));
+      setIsFaceUploading(false);
+    };
+    reader.readAsDataURL(file);
+  }, [addFaceProfile, t]);
+
   const handleGenerate = useCallback(async () => {
     const trimmedPrompt = prompt.trim();
-    if (!trimmedPrompt) {
+    if (!trimmedPrompt && !isTryOnMode) {
       setError(t('aiStudioErrorPrompt'));
+      return;
+    }
+    if (isTryOnMode && !selectedFace) {
+      setError(t('aiStudioTryOnFaceRequired'));
       return;
     }
 
     setError(null);
     setShouldShowContactCTA(false);
 
-    if (requiresTranslation) {
+    if (requiresTranslation && !isTryOnMode) {
       setLastOriginalPrompt(trimmedPrompt);
       if (!translationOptions.length) {
         setIsTranslating(true);
@@ -112,17 +209,29 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
         setError(t('aiStudioTranslationSelectInstruction'));
         return;
       }
-    } else {
+    } else if (!isTryOnMode) {
       setLastOriginalPrompt(trimmedPrompt);
     }
 
-    const effectivePrompt = requiresTranslation && selectedTranslation
-      ? selectedTranslation.chinese
-      : trimmedPrompt;
+    const effectivePrompt = (() => {
+      if (isTryOnMode && selectedFace) {
+        return buildCheongsamTryOnPrompt(selectedFace, craft, trimmedPrompt);
+      }
+      if (requiresTranslation && selectedTranslation) {
+        return selectedTranslation.chinese;
+      }
+      return trimmedPrompt;
+    })();
 
-    const modelPrompt = requiresTranslation && selectedTranslation
-      ? `${selectedTranslation.chinese} (${selectedTranslation.pronunciation}) — ${selectedTranslation.explanation}`
-      : effectivePrompt;
+    const modelPrompt = (() => {
+      if (isTryOnMode && selectedFace) {
+        return effectivePrompt;
+      }
+      if (requiresTranslation && selectedTranslation) {
+        return `${selectedTranslation.chinese} (${selectedTranslation.pronunciation}) — ${selectedTranslation.explanation}`;
+      }
+      return effectivePrompt;
+    })();
 
     setIsLoading(true);
     setTranslationError(null);
@@ -130,7 +239,18 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
     setLastUsedPrompt(effectivePrompt);
 
     try {
-      const specialTranslationKey = requiresTranslation && selectedTranslation
+      const promptContainsDragon = trimmedPrompt.toLowerCase().includes('dragon');
+      const hardcodedImageUrl = (() => {
+        if (!isCheongsamCraft || !promptContainsDragon) {
+          return null;
+        }
+        if (isTryOnMode) {
+          return '/images/presets/dragon_tryon.png';
+        }
+        return '/images/presets/dragon.jpeg';
+      })();
+
+      const specialTranslationKey = requiresTranslation && selectedTranslation && !isTryOnMode
         ? selectedTranslation.chinese
         : null;
       const specialImageUrl = specialTranslationKey
@@ -139,7 +259,10 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
 
       let imageUrl: string;
 
-      if (specialImageUrl) {
+      if (hardcodedImageUrl) {
+        await sleep(SPECIAL_IMAGE_DELAY_MS);
+        imageUrl = hardcodedImageUrl;
+      } else if (specialImageUrl) {
         await sleep(SPECIAL_IMAGE_DELAY_MS);
         imageUrl = specialImageUrl;
       } else {
@@ -147,14 +270,27 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
       }
 
       setGeneratedImage(imageUrl);
-      setShouldShowContactCTA(true);
+      setShouldShowContactCTA(!isTryOnMode);
       setRecentlyUsedTranslation(requiresTranslation && selectedTranslation ? { ...selectedTranslation } : null);
-      addAiCreation({
-        craftId: craft.id,
-        craftName: craft.name[language],
-        prompt: effectivePrompt,
-        imageUrl,
-      });
+
+      if (isTryOnMode && selectedFace) {
+        addTryOnLook({
+          craftId: craft.id,
+          craftName: craft.name[language],
+          imageUrl,
+          faceId: selectedFace.id,
+          faceLabel: selectedFace.label,
+          prompt: trimmedPrompt,
+          mode: 'cheongsam',
+        });
+      } else {
+        addAiCreation({
+          craftId: craft.id,
+          craftName: craft.name[language],
+          prompt: effectivePrompt,
+          imageUrl,
+        });
+      }
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : t('aiStudioErrorGeneric'));
@@ -170,7 +306,10 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
     language,
     addAiCreation,
     getMahjongTranslationSuggestions,
+    isTryOnMode,
+    selectedFace,
     t,
+    addTryOnLook,
   ]);
 
   const handleOpenContact = useCallback(() => {
@@ -208,12 +347,17 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
     }, 600);
   }, [contactSuccess, isSubmittingContact]);
 
-  const disableGenerate = isLoading || isTranslating || !prompt.trim();
+  const disableGenerate = isLoading
+    || isTranslating
+    || (!isTryOnMode && !prompt.trim())
+    || (isTryOnMode && !selectedFace);
   const generateButtonLabel = isLoading
     ? t('aiStudioGenerating')
-    : requiresTranslation && translationOptions.length
-      ? t('aiStudioGenerateWithTranslation', { translation: selectedTranslation?.chinese ?? t('aiStudioTranslationLabelFallback') })
-      : t('aiStudioGenerate');
+    : isTryOnMode
+      ? t('aiStudioTryOnGenerate')
+      : requiresTranslation && translationOptions.length
+        ? t('aiStudioGenerateWithTranslation', { translation: selectedTranslation?.chinese ?? t('aiStudioTranslationLabelFallback') })
+        : t('aiStudioGenerate');
 
   return (
     <motion.div 
@@ -265,9 +409,101 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
 
       {/* Minimalist Workspace */}
       <motion.div className="flex-grow p-6 flex flex-col space-y-6">
+        {isCheongsamCraft && (
+          <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-4 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-[var(--color-text-secondary)]">{t('aiStudioModeLabel')}</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{isTryOnMode ? t('aiStudioTryOnIntro') : t('aiStudioConceptModeHint')}</p>
+              </div>
+              <div className="inline-flex bg-[var(--color-secondary-accent)]/80 border border-[var(--color-border)] rounded-full p-1">
+                <button
+                  type="button"
+                  onClick={() => setStudioMode('concept')}
+                  className={`px-4 py-1 text-sm font-medium rounded-full transition-colors ${studioMode === 'concept' ? 'bg-[var(--color-primary-accent)] text-white' : 'text-[var(--color-text-secondary)]'}`}
+                >
+                  {t('aiStudioModeConcept')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStudioMode('try-on')}
+                  className={`px-4 py-1 text-sm font-medium rounded-full transition-colors ${studioMode === 'try-on' ? 'bg-[var(--color-primary-accent)] text-white' : 'text-[var(--color-text-secondary)]'}`}
+                >
+                  {t('aiStudioModeTryOn')}
+                </button>
+              </div>
+            </div>
+
+            {isTryOnMode && (
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleTriggerFaceUpload}
+                    className="px-4 py-2 rounded-full border border-dashed border-[var(--color-primary-accent)] text-[var(--color-primary-accent)] text-sm font-medium hover:bg-[var(--color-primary-accent)]/10 transition-colors disabled:opacity-50"
+                    disabled={isFaceUploading}
+                  >
+                    {isFaceUploading ? t('aiStudioFaceUploading') : t('aiStudioFaceUpload')}
+                  </button>
+                  <p className="text-xs text-[var(--color-text-secondary)]">{t('aiStudioBananaModelHint')}</p>
+                </div>
+
+                <input
+                  ref={faceFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFaceUpload}
+                />
+
+                {faceUploadError && (
+                  <p className="text-xs text-[var(--color-error)]">{faceUploadError}</p>
+                )}
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {faceProfiles.map(face => {
+                    const isActive = face.id === selectedFaceId;
+                    return (
+                      <button
+                        key={face.id}
+                        type="button"
+                        onClick={() => handleFaceSelect(face.id)}
+                        className={`group border rounded-xl overflow-hidden text-left transition-transform duration-200 ${isActive ? 'border-[var(--color-primary-accent)] scale-[1.02]' : 'border-[var(--color-border)] hover:border-[var(--color-primary-accent)]/60'}`}
+                      >
+                        <div className="relative">
+                          <img src={face.imageUrl} alt={face.label} className="h-28 w-full object-cover" />
+                          {isActive && (
+                            <span className="absolute top-2 right-2 bg-[var(--color-primary-accent)] text-white text-xs px-2 py-0.5 rounded-full">
+                              {t('aiStudioFaceSelectedTag')}
+                            </span>
+                          )}
+                        </div>
+                        <div className="px-3 py-2">
+                          <p className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{face.label}</p>
+                          <p className="text-xs text-[var(--color-text-secondary)]">{face.source === 'preset' ? t('aiStudioFacePresetLabel') : t('aiStudioFaceUploadedLabel')}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {selectedFace && (
+                  <div className="flex items-center gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-secondary-accent)]/40 p-3">
+                    <img src={selectedFace.imageUrl} alt={selectedFace.label} className="w-14 h-14 rounded-full object-cover border border-[var(--color-border)]" />
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--color-text-primary)]">{t('aiStudioFaceActiveLabel', { label: selectedFace.label })}</p>
+                      <p className="text-xs text-[var(--color-text-secondary)]">{t('aiStudioFaceActiveHelper')}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Museum-style Canvas Area */}
         <motion.div 
-          className="w-full aspect-[4/3] bg-[var(--color-surface)] rounded-2xl flex items-center justify-center border border-[var(--color-border)] relative overflow-hidden"
+          className="w-full h-[65vh] bg-[var(--color-surface)] rounded-2xl flex items-center justify-center border border-[var(--color-border)] relative overflow-hidden"
           style={{
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
           }}
@@ -436,7 +672,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
           <textarea
             value={prompt}
             onChange={(e) => handlePromptChange(e.target.value)}
-            placeholder={t('aiStudioInputPlaceholder')}
+            placeholder={isTryOnMode ? t('aiStudioTryOnPromptPlaceholder') : t('aiStudioInputPlaceholder')}
             rows={3}
             className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-accent)] resize-none"
             disabled={isLoading}

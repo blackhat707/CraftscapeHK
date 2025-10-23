@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { getCrafts } from '../services/apiService';
 import ThemeToggle from '../components/ThemeToggle';
@@ -7,7 +7,7 @@ import type { Craft } from '../types';
 import Spinner from '../components/Spinner';
 import { useLanguage } from '../contexts/LanguageContext';
 
-type ProfileTab = 'favorites' | 'creations';
+type ProfileTab = 'favorites' | 'creations' | 'wardrobe';
 
 const bentoLayoutClasses = [
     'col-span-2 row-span-2', 'col-span-1 row-span-1', 'col-span-1 row-span-1',
@@ -31,11 +31,14 @@ interface ProfileProps {
 }
 
 const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
-    const { favorites, aiCreations } = useAppContext();
+    const { favorites, aiCreations, faceProfiles, setActiveFace, activeFaceId, addFaceProfile, tryOnLooks } = useAppContext();
     const { language, setLanguage, t } = useLanguage();
     const [activeTab, setActiveTab] = useState<ProfileTab>('favorites');
     const [allCrafts, setAllCrafts] = useState<Craft[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [faceUploadError, setFaceUploadError] = useState<string | null>(null);
+    const [isFaceUploading, setIsFaceUploading] = useState(false);
+    const faceUploadInputRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
         if (activeTab === 'favorites') {
@@ -48,7 +51,52 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
     }, [activeTab]);
 
     const favoriteCrafts = allCrafts.filter(craft => favorites.has(craft.id));
-    const tabs = [{ id: 'favorites', label: t('profileTabFavorites') }, { id: 'creations', label: t('profileTabCreations') }];
+    const tabs = [
+        { id: 'favorites', label: t('profileTabFavorites') },
+        { id: 'creations', label: t('profileTabCreations') },
+        { id: 'wardrobe', label: t('profileTabWardrobe') },
+    ];
+
+    const handleTriggerFaceUpload = useCallback(() => {
+        faceUploadInputRef.current?.click();
+    }, []);
+
+    const handleFaceUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) {
+            return;
+        }
+        setIsFaceUploading(true);
+        setFaceUploadError(null);
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            const imageUrl = typeof reader.result === 'string' ? reader.result : '';
+            if (!imageUrl) {
+                setFaceUploadError(t('profileWardrobeUploadError'));
+                setIsFaceUploading(false);
+                return;
+            }
+            const label = file.name.replace(/\.[^/.]+$/, '') || t('profileWardrobeUploadFallback');
+            addFaceProfile({
+                label,
+                imageUrl,
+                source: 'upload',
+            });
+            setIsFaceUploading(false);
+            event.target.value = '';
+        };
+        reader.onerror = () => {
+            setFaceUploadError(t('profileWardrobeUploadError'));
+            setIsFaceUploading(false);
+        };
+        reader.readAsDataURL(file);
+    }, [addFaceProfile, t]);
+
+    const handleFaceActivate = useCallback((faceId: string) => {
+        setActiveFace(faceId);
+        setFaceUploadError(null);
+    }, [setActiveFace]);
 
     return (
         <div className="h-full w-full flex flex-col bg-[var(--color-bg)] overflow-y-auto">
@@ -215,6 +263,92 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
                                 <p className="text-[var(--color-text-secondary)] mb-2">{t('profileCreationsEmpty')}</p>
                             </div>
                         )}
+                    </div>
+                )}
+                {activeTab === 'wardrobe' && (
+                    <div className="space-y-6">
+                        <div className="museum-card p-4 space-y-4">
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                    <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{t('profileWardrobeFacesTitle')}</h2>
+                                    <p className="text-sm text-[var(--color-text-secondary)]">{t('profileWardrobeFacesSubtitle')}</p>
+                                </div>
+                                <button
+                                    onClick={handleTriggerFaceUpload}
+                                    className="px-4 py-2 rounded-full border border-[var(--color-primary-accent)] text-[var(--color-primary-accent)] text-sm font-medium hover:bg-[var(--color-primary-accent)]/10 transition-colors disabled:opacity-50"
+                                    disabled={isFaceUploading}
+                                    type="button"
+                                >
+                                    {isFaceUploading ? t('profileWardrobeUploading') : t('profileWardrobeUploadButton')}
+                                </button>
+                            </div>
+                            <input
+                                ref={faceUploadInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleFaceUpload}
+                            />
+                            {faceUploadError && (
+                                <p className="text-xs text-[var(--color-error)]">{faceUploadError}</p>
+                            )}
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                {faceProfiles.map(face => {
+                                    const isActive = face.id === activeFaceId;
+                                    return (
+                                        <button
+                                            key={face.id}
+                                            type="button"
+                                            onClick={() => handleFaceActivate(face.id)}
+                                            className={`border rounded-xl overflow-hidden text-left transition-all duration-200 ${
+                                                isActive ? 'border-[var(--color-primary-accent)] shadow-lg shadow-[var(--color-primary-accent)]/20 scale-[1.01]' : 'border-[var(--color-border)] hover:border-[var(--color-primary-accent)]/60'
+                                            }`}
+                                        >
+                                            <img src={face.imageUrl} alt={face.label} className="w-full h-32 object-cover" />
+                                            <div className="px-3 py-2 space-y-1">
+                                                <div className="flex items-center justify-between">
+                                                    <p className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{face.label}</p>
+                                                    <span className="text-[10px] uppercase tracking-wide text-[var(--color-text-secondary)]">
+                                                        {face.source === 'preset' ? t('profileWardrobeFacePreset') : t('profileWardrobeFaceUploaded')}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-[var(--color-text-secondary)]">
+                                                    {isActive ? t('profileWardrobeFaceActive') : t('profileWardrobeFaceUse')}
+                                                </p>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            {!faceProfiles.length && (
+                                <p className="text-sm text-[var(--color-text-secondary)]">{t('profileWardrobeFacesEmpty')}</p>
+                            )}
+                        </div>
+
+                        <div className="museum-card p-4 space-y-4">
+                            <div>
+                                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{t('profileWardrobeTryOnsTitle')}</h2>
+                                <p className="text-sm text-[var(--color-text-secondary)]">{t('profileWardrobeTryOnsSubtitle')}</p>
+                            </div>
+                            {tryOnLooks.length ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {tryOnLooks.map(look => (
+                                        <div key={look.id} className="border border-[var(--color-border)] rounded-xl overflow-hidden bg-[var(--color-surface)]">
+                                            <img src={look.imageUrl} alt={look.craftName} className="w-full h-56 object-cover" />
+                                            <div className="p-3 space-y-1">
+                                                <p className="text-sm font-semibold text-[var(--color-text-primary)]">{look.craftName}</p>
+                                                <p className="text-xs text-[var(--color-text-secondary)]">{t('profileWardrobeTryOnsFace', { face: look.faceLabel })}</p>
+                                                <p className="text-[11px] text-[var(--color-text-secondary)]">
+                                                    {new Date(look.createdAt).toLocaleString()}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-[var(--color-text-secondary)]">{t('profileWardrobeTryOnsEmpty')}</p>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>

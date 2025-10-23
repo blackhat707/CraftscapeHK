@@ -1,4 +1,4 @@
-import type { Craft, Event, Product, Artisan, Order, MessageThread, GlyphName } from './types';
+import type { Craft, Event, Product, Artisan, Order, MessageThread, GlyphName, FaceProfile } from './types';
 
 export const CRAFTS: Craft[] = [
   {
@@ -441,6 +441,37 @@ export const MESSAGE_THREADS: MessageThread[] = [
       }
     ]
   }
+];
+
+export const CHEONGSAM_FACE_PRESETS: FaceProfile[] = [
+  {
+    id: '1',
+    label: 'Threads',
+    imageUrl: 'public/images/faces/face1.jpg',
+    source: 'faces',
+    createdAt: '2024-01-10T08:00:00.000Z',
+  },
+  {
+    id: '2',
+    label: 'LIHKG',
+    imageUrl: 'public/images/faces/face2.jpg',
+    source: 'faces',
+    createdAt: '2024-01-11T12:00:00.000Z',
+  },
+  {
+    id: '3',
+    label: 'IG',
+    imageUrl: 'public/images/faces/face3.jpg',
+    source: 'faces',
+    createdAt: '2024-01-11T12:00:00.000Z',
+  },
+  {
+    id: '4',
+    label: 'LinkedIn',
+    imageUrl: 'public/images/faces/face4.jpeg',
+    source: 'faces',
+    createdAt: '2024-01-11T12:00:00.000Z',
+  },
 ];
 
 // TextLab Glyph Library
