@@ -1,8 +1,6 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import type { Craft, TranslationOption } from '../types';
-import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import type { Craft } from '../types';
 import { useAppContext } from '../contexts/AppContext';
 import { generateCraftImage } from '../services/geminiService';
 import { getMahjongTranslationSuggestions } from '../services/translationService';
@@ -42,6 +40,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
   const [contactMessage, setContactMessage] = useState('');
   const [isSubmittingContact, setIsSubmittingContact] = useState(false);
   const [contactSuccess, setContactSuccess] = useState(false);
+  const [shouldShowContactCTA, setShouldShowContactCTA] = useState(false);
   const { addAiCreation } = useAppContext();
   const { language, t } = useLanguage();
   const isMahjongCraft = craft.category === 'mahjong' || craft.name.en.toLowerCase().includes('mahjong');
@@ -58,6 +57,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
     setTranslationError(null);
     setIsTranslating(false);
     setRecentlyUsedTranslation(null);
+    setShouldShowContactCTA(false);
   }, [requiresTranslation, craft.id]);
 
   const handleSelectTranslation = useCallback((option: TranslationOption) => {
@@ -67,6 +67,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
 
   const handlePromptChange = useCallback((value: string) => {
     setPrompt(value);
+    setShouldShowContactCTA(false);
     if (requiresTranslation) {
       setTranslationOptions([]);
       setSelectedTranslation(null);
@@ -83,6 +84,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
     }
 
     setError(null);
+    setShouldShowContactCTA(false);
 
     if (requiresTranslation) {
       setLastOriginalPrompt(trimmedPrompt);
@@ -145,6 +147,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
       }
 
       setGeneratedImage(imageUrl);
+      setShouldShowContactCTA(true);
       setRecentlyUsedTranslation(requiresTranslation && selectedTranslation ? { ...selectedTranslation } : null);
       addAiCreation({
         craftId: craft.id,
@@ -234,7 +237,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.1 }}
           >
-            AI 創作室
+            {t('aiStudioTitle')}
           </motion.h1>
           <motion.p 
             className="text-sm text-[var(--color-text-secondary)] mt-1"
@@ -261,7 +264,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
       </header>
 
       {/* Minimalist Workspace */}
-      <div className="flex-grow p-6 flex flex-col space-y-6">
+      <motion.div className="flex-grow p-6 flex flex-col space-y-6">
         {/* Museum-style Canvas Area */}
         <motion.div 
           className="w-full aspect-[4/3] bg-[var(--color-surface)] rounded-2xl flex items-center justify-center border border-[var(--color-border)] relative overflow-hidden"
@@ -273,14 +276,37 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
           transition={{ delay: 0.4, type: "spring", stiffness: 300, damping: 30 }}
         >
           {isLoading && (
-            <motion.div 
-              className="text-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+            <motion.div
+              className="flex flex-col items-center gap-6 text-center"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <div className="w-12 h-12 border-3 border-[var(--color-primary-accent)] border-t-transparent rounded-full animate-spin mx-auto"></div>
-              <p className="mt-4 text-base text-[var(--color-text-secondary)] font-medium">Creating your design...</p>
+              <motion.div
+                className="relative w-16 h-16"
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 1.2, ease: 'linear' }}
+              >
+                <span className="absolute inset-0 rounded-full border-4 border-[var(--color-primary-accent)]/30" />
+                <span className="absolute inset-1 rounded-full border-4 border-transparent border-t-[var(--color-primary-accent)]" />
+              </motion.div>
+
+              <div className="space-y-1">
+                <motion.p
+                  className="text-base font-semibold text-[var(--color-text-primary)]"
+                  animate={{ opacity: [0.4, 1, 0.4] }}
+                  transition={{ duration: 2.8, repeat: Infinity }}
+                >
+                  {t('aiStudioLoading')}
+                </motion.p>
+                <motion.p
+                  className="text-sm text-[var(--color-text-secondary)]"
+                  animate={{ opacity: [0.3, 1, 0.3] }}
+                  transition={{ duration: 3.1, repeat: Infinity, delay: 0.5 }}
+                >
+                  {t('aiStudioGenerating')}
+                </motion.p>
+              </div>
             </motion.div>
           )}
           {error && (
@@ -318,7 +344,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
               <p className="text-sm mt-2 opacity-70">Enter your inspiration below</p>
             </motion.div>
           )}
-        </div>
+        </motion.div>
 
         {requiresTranslation && (isTranslating || translationOptions.length > 0 || translationError) && (
           <div className="bg-[var(--color-surface)] p-4 rounded-xl mt-4 border border-[var(--color-border)] space-y-3">
@@ -333,9 +359,18 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
                 )}
               </div>
               {isTranslating && (
-                <div className="flex items-center gap-2 text-[12px] text-[var(--color-primary-accent)]">
-                  <span className="w-3 h-3 border-2 border-[var(--color-primary-accent)] border-t-transparent rounded-full animate-spin"></span>
-                  {t('aiStudioTranslationLoading')}
+                <div className="flex flex-col items-center justify-center gap-2 text-[12px] text-[var(--color-primary-accent)] ml-auto self-center w-48 max-w-[60%]">
+                  <span className="w-full">{t('aiStudioTranslationLoading')}</span>
+                  <motion.span
+                    className="relative block h-2 w-full overflow-hidden rounded-full bg-[var(--color-primary-accent)]/15"
+                    initial={false}
+                  >
+                    <motion.span
+                      className="absolute inset-y-0 w-1/3 rounded-full bg-[var(--color-primary-accent)]"
+                      animate={{ x: ['-40%', '120%'] }}
+                      transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut' }}
+                    />
+                  </motion.span>
                 </div>
               )}
             </div>
@@ -385,7 +420,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
           </div>
         )}
         
-        {generatedImage && (
+        {shouldShowContactCTA && generatedImage && (
              <div className="bg-[var(--color-surface)] p-4 rounded-xl text-center mt-4 border border-[var(--color-border)] ios-shadow">
                 <h3 className="text-[17px] font-semibold text-[var(--color-primary-accent)]">{t('aiStudioCtaTitle')}</h3>
                 <button
@@ -413,7 +448,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
             {generateButtonLabel}
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {isContactOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
@@ -527,70 +562,6 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
           </div>
         </div>
       )}
-    </div>
-        </motion.div>
-        
-        {/* Museum-style Input Section */}
-        <motion.div 
-          className="space-y-6"
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.6 }}
-        >
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-[var(--color-text-secondary)] uppercase tracking-wide">
-              Inspiration
-            </label>
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="輸入靈感或主題…"
-              rows={4}
-              className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-accent)] focus:border-transparent resize-none transition-all duration-200 text-base"
-              disabled={isLoading}
-              style={{
-                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.05)'
-              }}
-            />
-          </div>
-          <motion.button 
-            onClick={handleGenerate}
-            disabled={isLoading || !prompt}
-            className="w-full bg-[var(--color-primary-accent)] text-white font-bold py-5 px-8 rounded-xl text-lg transition-all duration-200 hover:shadow-xl hover:shadow-[var(--color-primary-accent)]/30 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{
-              boxShadow: '0 8px 32px rgba(232, 92, 74, 0.2)'
-            }}
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            {isLoading ? 'Creating...' : 'Generate Design'}
-          </motion.button>
-        </motion.div>
-
-        {/* Follow-up CTA */}
-        {generatedImage && (
-          <motion.div 
-            className="museum-card p-6 text-center"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
-              🪡 想將這個設計變成實物嗎？
-            </h3>
-            <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-              Connect with artisans to bring your design to life
-            </p>
-            <motion.button 
-              className="bg-[var(--color-primary-accent)] text-white font-semibold py-3 px-6 rounded-full transition-all duration-200 hover:shadow-lg hover:shadow-[var(--color-primary-accent)]/20"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Explore Marketplace
-            </motion.button>
-          </motion.div>
-        )}
-      </div>
     </motion.div>
   );
 };

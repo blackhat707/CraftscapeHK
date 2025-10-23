@@ -13,7 +13,8 @@ interface ExploreProps {
 const Explore: React.FC<ExploreProps> = ({ onShowDetails }) => {
     const [crafts, setCrafts] = useState<Craft[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const { t } = useLanguage();
+    const [activeIndex, setActiveIndex] = useState(0);
+    const { t, language } = useLanguage();
     
     useEffect(() => {
         const fetchData = async () => {
@@ -50,9 +51,19 @@ const Explore: React.FC<ExploreProps> = ({ onShowDetails }) => {
         <div className="w-full min-h-[100svh] bg-[var(--color-bg)] relative overflow-hidden">
             {/* Museum-style Header */}
             <div className="absolute top-0 left-0 right-0 z-20 bg-gradient-to-b from-[var(--color-bg)] to-transparent px-4 py-6">
-                <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
-                    {t('navExplore')}
-                </h1>
+                <div className="flex items-baseline justify-between gap-4">
+                    <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+                        {t('navExplore')}
+                    </h1>
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs tracking-wide text-[var(--color-text-secondary)] uppercase">
+                            {language === 'zh' ? '館藏' : 'Collection'}
+                        </span>
+                        <span className="text-sm font-medium text-[var(--color-text-primary)]">
+                            {activeIndex + 1} / {crafts.length}
+                        </span>
+                    </div>
+                </div>
             </div>
 
             {/* Carousel Container */}
@@ -60,6 +71,7 @@ const Explore: React.FC<ExploreProps> = ({ onShowDetails }) => {
                 <ExploreCarousel 
                     crafts={crafts} 
                     onCardTap={onShowDetails}
+                    onActiveIndexChange={setActiveIndex}
                 />
             </div>
         </div>
