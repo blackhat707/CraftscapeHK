@@ -83,6 +83,16 @@ export interface AiCreation {
   imageUrl: string;
 }
 
+export type TranslationStrategy = 'phonetic' | 'meaning' | 'mixed';
+
+export interface TranslationOption {
+  id: string;
+  chinese: string;
+  pronunciation: string;
+  explanation: string;
+  strategy: TranslationStrategy;
+}
+
 // TextLab specific types
 export type GlyphName = 
   | 'shou' | 'tian' | 'shui' | 'kou' | 'nian' | 'bu' | 'shan' | 'ge' | 'ren' | 'xin'
