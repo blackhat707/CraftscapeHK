@@ -29,32 +29,61 @@ const FilterButton: FC<{ label: string; isActive: boolean; onClick: () => void; 
 const EventCard: FC<{ event: Event; onSelect: () => void; className?: string; }> = ({ event, onSelect, className = '' }) => {
     const { language } = useLanguage();
     return (
-        <button onClick={onSelect} className={`bg-[var(--color-surface)] rounded-2xl overflow-hidden ios-shadow border border-transparent hover:border-[var(--color-border)] transition-all duration-300 group text-left ${className}`}>
-            <img src={event.image} alt={event.title[language]} className="w-full h-28 object-cover"/>
-            <div className="p-3 flex flex-col flex-grow">
-                <h3 className="font-semibold text-sm text-[var(--color-text-primary)] leading-tight flex-grow">{event.title[language]}</h3>
-                <div className="mt-1">
-                    <p className="text-xs text-[var(--color-text-secondary)]">{event.date}</p>
-                    <p className="text-xs text-[var(--color-text-secondary)] truncate">{event.location[language]}</p>
+        <motion.button 
+            onClick={onSelect} 
+            className={`museum-card overflow-hidden group text-left ${className}`}
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        >
+            <div className="relative">
+                <img 
+                    src={event.image} 
+                    alt={event.title[language]} 
+                    className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </div>
+            <div className="p-4 flex flex-col flex-grow">
+                <h3 className="font-semibold text-base text-[var(--color-text-primary)] leading-tight flex-grow mb-2">
+                    {event.title[language]}
+                </h3>
+                <div className="space-y-1">
+                    <p className="text-sm text-[var(--color-text-secondary)]">{event.date}</p>
+                    <p className="text-sm text-[var(--color-text-secondary)] truncate">{event.location[language]}</p>
                 </div>
             </div>
-        </button>
+        </motion.button>
     );
 };
 
 const FeaturedEventCard: FC<{ event: Event, onSelect: () => void }> = ({ event, onSelect }) => {
     const { language } = useLanguage();
     return (
-        <button onClick={onSelect} className="w-[75vw] max-w-[280px] flex-shrink-0 bg-[var(--color-surface)] rounded-2xl overflow-hidden ios-shadow border border-transparent hover:border-[var(--color-border)] transition-all duration-300 group text-left">
-            <div className="relative h-40">
-                <img src={event.image} alt={event.title[language]} className="w-full h-full object-cover"/>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+        <motion.button 
+            onClick={onSelect} 
+            className="w-[75vw] max-w-[280px] flex-shrink-0 museum-card overflow-hidden group text-left"
+            whileHover={{ y: -4 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        >
+            <div className="relative h-48">
+                <img 
+                    src={event.image} 
+                    alt={event.title[language]} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+                <div className="absolute bottom-4 left-4 right-4">
+                    <h3 className="font-bold text-lg text-white mb-1 leading-tight">
+                        {event.title[language]}
+                    </h3>
+                    <p className="text-sm text-white/90 truncate">
+                        {event.location[language]}
+                    </p>
+                </div>
             </div>
-            <div className="p-3">
-                <h3 className="font-semibold text-[var(--color-text-primary)] truncate">{event.title[language]}</h3>
-                <p className="text-sm text-[var(--color-text-secondary)] truncate">{event.location[language]}</p>
-            </div>
-        </button>
+        </motion.button>
     );
 };
 
@@ -236,14 +265,16 @@ const Events: React.FC<EventsProps> = ({ onSelectEvent }) => {
         <div className="h-full w-full flex flex-col bg-[var(--color-bg)] overflow-y-auto relative no-scrollbar">
             <CalendarModal isOpen={isCalendarOpen} onClose={() => setIsCalendarOpen(false)} onDateSelect={handleDateSelect} />
 
-            <header className="p-6 pb-2 sticky top-0 bg-[var(--color-bg)]/80 backdrop-blur-md z-10">
+            {/* Editorial Header */}
+            <header className="sticky top-0 z-10 bg-[var(--color-bg)]/80 backdrop-blur-sm border-b border-[var(--color-border)] px-4 py-6">
                 <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">{t('eventsTitle')}</h1>
-                <p className="text-[17px] text-[var(--color-text-secondary)]">{t('eventsDesc')}</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('eventsDesc')}</p>
             </header>
 
-            <div className="px-6 py-4 space-y-6">
-                 <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-[var(--color-text-secondary)]">{t('eventsTime')}</h3>
+            {/* Editorial Filters */}
+            <div className="px-4 py-6 space-y-6">
+                <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide">{t('eventsTime')}</h3>
                     <div className="flex flex-wrap gap-2">
                         {dateFilters.map(filter => (
                             <FilterButton 
@@ -255,9 +286,9 @@ const Events: React.FC<EventsProps> = ({ onSelectEvent }) => {
                         ))}
                     </div>
                 </div>
-                 <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-[var(--color-text-secondary)]">{t('eventsCategory')}</h3>
-                    <div className="flex flex-nowrap space-x-2 overflow-x-auto pb-2 -mx-6 px-6 no-scrollbar">
+                <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide">{t('eventsCategory')}</h3>
+                    <div className="flex flex-nowrap space-x-2 overflow-x-auto pb-2 -mx-4 px-4 no-scrollbar">
                         {categoryFilters.map(filter => (
                             <FilterButton 
                                 key={filter} 
@@ -270,29 +301,38 @@ const Events: React.FC<EventsProps> = ({ onSelectEvent }) => {
                 </div>
             </div>
 
-            <section className="mt-2 w-full">
-                <div className="px-6 mb-2">
-                    <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{t('eventsFeatured')}</h2>
-                </div>
-                <div className="flex flex-nowrap gap-4 overflow-x-auto pb-4 pl-6 snap-x snap-mandatory no-scrollbar" style={{ scrollPaddingLeft: '1.5rem' }}>
-                    {featuredEvents.map(event => (
-                        <div key={event.id} className="snap-start">
-                             <FeaturedEventCard event={event} onSelect={() => onSelectEvent(event)} />
-                        </div>
-                    ))}
-                     <div className="flex-shrink-0 w-2 h-1"></div>
-                </div>
-            </section>
+            {/* Featured Events - Editorial Style */}
+            {featuredEvents.length > 0 && (
+                <section className="mb-8">
+                    <div className="px-4 mb-4">
+                        <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-1">{t('eventsFeatured')}</h2>
+                        <p className="text-sm text-[var(--color-text-secondary)]">Curated highlights</p>
+                    </div>
+                    <div className="flex flex-nowrap gap-4 overflow-x-auto pb-4 pl-4 snap-x snap-mandatory no-scrollbar" style={{ scrollPaddingLeft: '1rem' }}>
+                        {featuredEvents.map(event => (
+                            <div key={event.id} className="snap-start">
+                                <FeaturedEventCard event={event} onSelect={() => onSelectEvent(event)} />
+                            </div>
+                        ))}
+                        <div className="flex-shrink-0 w-2 h-1"></div>
+                    </div>
+                </section>
+            )}
             
-            <section className="mt-6 px-6 flex-grow">
-                 <div className="mb-2">
-                    <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{t('eventsUpcoming')}</h2>
-                 </div>
-                 <div className="grid grid-cols-2 gap-4 pb-24">
+            {/* Events List - Editorial Style */}
+            <section className="flex-grow px-4">
+                <div className="mb-4">
+                    <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-1">{t('eventsUpcoming')}</h2>
+                    <p className="text-sm text-[var(--color-text-secondary)]">All upcoming events</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4 pb-24">
                     {filteredUpcomingEvents.length > 0 ? filteredUpcomingEvents.map(event => (
                         <EventCard key={event.id} event={event} onSelect={() => onSelectEvent(event)} />
                     )) : (
-                        <p className="col-span-2 text-center text-[var(--color-text-secondary)] mt-8">No events match your criteria.</p>
+                        <div className="col-span-2 text-center py-12">
+                            <p className="text-[var(--color-text-secondary)] mb-2">No events match your criteria</p>
+                            <p className="text-sm text-[var(--color-text-secondary)]">Try adjusting your filters</p>
+                        </div>
                     )}
                 </div>
             </section>

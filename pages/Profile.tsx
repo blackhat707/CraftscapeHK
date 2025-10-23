@@ -52,111 +52,169 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
 
     return (
         <div className="h-full w-full flex flex-col bg-[var(--color-bg)] overflow-y-auto">
-            <header className="p-6 pt-10">
+            {/* Museum-style Header */}
+            <header className="px-4 py-6 border-b border-[var(--color-border)]">
                 <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-4">
-                        <img src="https://picsum.photos/seed/user/200/200" alt="User Avatar" className="w-20 h-20 rounded-full border-2 border-[var(--color-primary-accent)]"/>
+                        <div className="relative">
+                            <img 
+                                src="https://picsum.photos/seed/user/200/200" 
+                                alt="User Avatar" 
+                                className="w-16 h-16 rounded-full border-2 border-[var(--color-primary-accent)] object-cover"
+                            />
+                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[var(--color-primary-accent)] rounded-full border-2 border-[var(--color-bg)]"></div>
+                        </div>
                         <div>
                             <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">{t('profileTitle')}</h1>
-                            <p className="text-[17px] text-[var(--color-text-secondary)]">{t('profileStats', { favorites: favorites.size, creations: aiCreations.length })}</p>
+                            <p className="text-sm text-[var(--color-text-secondary)]">{t('profileStats', { favorites: favorites.size, creations: aiCreations.length })}</p>
                         </div>
                     </div>
-                     <div className="flex items-center space-x-2">
-                        <button className="w-10 h-10 rounded-full p-2 flex items-center justify-center bg-[var(--color-surface)] border border-[var(--color-border)] transition-colors"><SettingsIcon /></button>
+                    <div className="flex items-center space-x-2">
+                        <motion.button 
+                            className="w-10 h-10 rounded-full p-2 flex items-center justify-center bg-[var(--color-surface)] border border-[var(--color-border)] transition-all duration-200 hover:bg-[var(--color-secondary-accent)]"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            <SettingsIcon />
+                        </motion.button>
                         <ThemeToggle />
                     </div>
                 </div>
             </header>
             
-            <div className="px-6 mt-4">
-                <button
+            {/* Museum-style Sections */}
+            <div className="px-4 py-6 space-y-6">
+                {/* Artisan Mode Toggle */}
+                <motion.button
                     onClick={onToggleArtisanMode}
-                    className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] text-center font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:bg-[var(--color-secondary-accent)] text-[var(--color-primary-accent)] ios-shadow"
+                    className="w-full museum-card p-4 text-center font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-[var(--color-primary-accent)]/10 text-[var(--color-primary-accent)]"
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.98 }}
                 >
-                    {t('profileSwitchToArtisan')}
-                </button>
-            </div>
-            
-            <div className="px-6 mt-6">
-                <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-2">{t('profileLanguageSetting')}</h2>
-                <div className="relative flex bg-[var(--color-secondary-accent)] p-1 rounded-xl">
-                    <button
-                        onClick={() => setLanguage('zh')}
-                        className={`relative w-full py-2.5 rounded-lg text-[15px] font-semibold transition-colors duration-300 z-10 ${language === 'zh' ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)]'}`}
-                    >
-                        {language === 'zh' && (
-                            <motion.div
-                                layoutId="languageBubble"
-                                className="absolute inset-0 bg-[var(--color-surface)] rounded-lg ios-shadow"
-                                style={{ borderRadius: '0.5rem' }}
-                                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                            />
-                        )}
-                        <span className="relative">繁體中文</span>
-                    </button>
-                    <button
-                        onClick={() => setLanguage('en')}
-                        className={`relative w-full py-2.5 rounded-lg text-[15px] font-semibold transition-colors duration-300 z-10 ${language === 'en' ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)]'}`}
-                    >
-                        {language === 'en' && (
-                            <motion.div
-                                layoutId="languageBubble"
-                                className="absolute inset-0 bg-[var(--color-surface)] rounded-lg ios-shadow"
-                                style={{ borderRadius: '0.5rem' }}
-                                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                            />
-                        )}
-                        <span className="relative">English</span>
-                    </button>
-                </div>
-            </div>
-
-            <div className="px-6 mt-6">
-                <div className="relative flex bg-[var(--color-secondary-accent)] p-1 rounded-xl">
-                    {tabs.map(tab => (
-                        <button 
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id as ProfileTab)}
-                            className={`relative w-full py-2.5 rounded-lg text-[15px] font-semibold transition-colors duration-300 z-10 ${activeTab === tab.id ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)]'}`}
+                    <div className="flex items-center justify-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span>{t('profileSwitchToArtisan')}</span>
+                    </div>
+                </motion.button>
+                
+                {/* Language Setting */}
+                <div>
+                    <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3 uppercase tracking-wide">{t('profileLanguageSetting')}</h2>
+                    <div className="relative flex bg-[var(--color-secondary-accent)] p-1 rounded-xl">
+                        <button
+                            onClick={() => setLanguage('zh')}
+                            className={`relative w-full py-3 rounded-lg text-sm font-semibold transition-colors duration-300 z-10 ${language === 'zh' ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)]'}`}
                         >
-                            {activeTab === tab.id && (
-                                <motion.div 
-                                    layoutId="profileTabBubble" 
+                            {language === 'zh' && (
+                                <motion.div
+                                    layoutId="languageBubble"
                                     className="absolute inset-0 bg-[var(--color-surface)] rounded-lg ios-shadow"
                                     style={{ borderRadius: '0.5rem' }}
-                                    transition={{ type: 'spring', stiffness: 300, damping: 30 }} 
+                                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                                 />
                             )}
-                            <span className="relative">{tab.label}</span>
+                            <span className="relative">繁體中文</span>
                         </button>
-                    ))}
+                        <button
+                            onClick={() => setLanguage('en')}
+                            className={`relative w-full py-3 rounded-lg text-sm font-semibold transition-colors duration-300 z-10 ${language === 'en' ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)]'}`}
+                        >
+                            {language === 'en' && (
+                                <motion.div
+                                    layoutId="languageBubble"
+                                    className="absolute inset-0 bg-[var(--color-surface)] rounded-lg ios-shadow"
+                                    style={{ borderRadius: '0.5rem' }}
+                                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                />
+                            )}
+                            <span className="relative">English</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Content Tabs */}
+                <div>
+                    <div className="relative flex bg-[var(--color-secondary-accent)] p-1 rounded-xl">
+                        {tabs.map(tab => (
+                            <button 
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id as ProfileTab)}
+                                className={`relative w-full py-3 rounded-lg text-sm font-semibold transition-colors duration-300 z-10 ${activeTab === tab.id ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)]'}`}
+                            >
+                                {activeTab === tab.id && (
+                                    <motion.div 
+                                        layoutId="profileTabBubble" 
+                                        className="absolute inset-0 bg-[var(--color-surface)] rounded-lg ios-shadow"
+                                        style={{ borderRadius: '0.5rem' }}
+                                        transition={{ type: 'spring', stiffness: 300, damping: 30 }} 
+                                    />
+                                )}
+                                <span className="relative">{tab.label}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
-            <div className="flex-grow p-6 pb-24">
+            {/* Museum-style Content */}
+            <div className="flex-grow px-4 pb-24">
                 {activeTab === 'favorites' && (
                     isLoading ? <Spinner /> : (
                     <div className="grid grid-cols-2 grid-flow-dense auto-rows-fr gap-4">
                         {favoriteCrafts.length > 0 ? favoriteCrafts.map((craft, index) => (
-                            <div key={craft.id} className={`${bentoLayoutClasses[index % bentoLayoutClasses.length]} bg-[var(--color-surface)] rounded-2xl overflow-hidden border border-[var(--color-border)] ios-shadow aspect-square`}>
-                                <img src={craft.images[0]} alt={craft.name[language]} className="w-full h-full object-cover"/>
+                            <motion.div 
+                                key={craft.id} 
+                                className={`${bentoLayoutClasses[index % bentoLayoutClasses.length]} museum-card overflow-hidden aspect-square group`}
+                                whileHover={{ y: -2 }}
+                                whileTap={{ scale: 0.98 }}
+                                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                            >
+                                <img 
+                                    src={craft.images[0]} 
+                                    alt={craft.name[language]} 
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                />
+                            </motion.div>
+                        )) : (
+                            <div className="col-span-2 text-center py-12">
+                                <p className="text-[var(--color-text-secondary)] mb-2">{t('profileFavoritesEmpty')}</p>
                             </div>
-                        )) : <p className="col-span-2 text-center text-[var(--color-text-secondary)] mt-8 text-[17px]">{t('profileFavoritesEmpty')}</p>}
+                        )}
                     </div>
                     )
                 )}
                 {activeTab === 'creations' && (
                     <div className="grid grid-cols-2 gap-4">
                         {aiCreations.map(creation => (
-                            <div key={creation.id} className="bg-[var(--color-surface)] rounded-2xl overflow-hidden border border-[var(--color-border)] ios-shadow">
-                                <img src={creation.imageUrl} alt={creation.prompt} className="w-full h-40 object-cover"/>
-                                <div className="p-3">
-                                    <p className="text-[15px] font-semibold text-[var(--color-primary-accent)]">{creation.craftName}</p>
-                                    <p className="text-[15px] text-[var(--color-text-secondary)] truncate mt-1">{creation.prompt}</p>
+                            <motion.div 
+                                key={creation.id} 
+                                className="museum-card overflow-hidden group"
+                                whileHover={{ y: -2 }}
+                                whileTap={{ scale: 0.98 }}
+                                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                            >
+                                <div className="relative overflow-hidden">
+                                    <img 
+                                        src={creation.imageUrl} 
+                                        alt={creation.prompt} 
+                                        className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                 </div>
-                            </div>
+                                <div className="p-4">
+                                    <p className="text-sm font-semibold text-[var(--color-primary-accent)] mb-1">{creation.craftName}</p>
+                                    <p className="text-sm text-[var(--color-text-secondary)] truncate">{creation.prompt}</p>
+                                </div>
+                            </motion.div>
                         ))}
-                         {aiCreations.length === 0 && <p className="col-span-2 text-center text-[var(--color-text-secondary)] mt-8 text-[17px]">{t('profileCreationsEmpty')}</p>}
+                        {aiCreations.length === 0 && (
+                            <div className="col-span-2 text-center py-12">
+                                <p className="text-[var(--color-text-secondary)] mb-2">{t('profileCreationsEmpty')}</p>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
