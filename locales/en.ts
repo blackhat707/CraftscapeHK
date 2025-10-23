@@ -3,6 +3,7 @@ export const en = {
     loading: 'Loading...',
     
     // Nav
+    navHome: 'Home',
     navExplore: 'Explore',
     navMarketplace: 'Marketplace',
     navEvents: 'Events',
@@ -59,7 +60,7 @@ export const en = {
 
     // Craft Detail
     craftDetailIntro: 'About the Craft',
-    craftDetailCtaTitle: 'Want to unleash your creativity and design your own version?',
+    craftDetailCtaTitle: 'Do you want to make your own version?',
     craftDetailCtaDesc: 'Combine traditional aesthetics with your inspiration, and let AI lend a hand.',
     craftDetailCtaButton: 'Enter AI Studio',
     craftDetailHistory: 'History',
@@ -120,14 +121,17 @@ export const en = {
     chatroomPlaceholder: 'Type a message...',
 
     // Onboarding
-    onboardingTitle1: 'Swipe to Discover Crafts',
-    onboardingDesc1: 'Swipe right to like and view details, or swipe left to see the next craft.',
-    onboardingTitle2: 'Find Unique Masterpieces',
-    onboardingDesc2: 'In the marketplace, you can buy crafts handmade by local artisans.',
-    onboardingTitle3: 'Experience Craftsmanship',
-    onboardingDesc3: 'Sign up for workshops, exhibitions, and talks to meet the artisans.',
+    onboardingTitle1: 'Swipe Through Masterpieces',
+    onboardingDesc1: 'Glide horizontally to browse each craft in the gallery carousel.',
+    onboardingTitle2: 'Curated Marketplace',
+    onboardingDesc2: 'Scroll vertically to explore handcrafted pieces from local artisans.',
+    onboardingTitle3: 'Cultural Experiences',
+    onboardingDesc3: 'Discover upcoming events and immersive AR play moments in one place.',
     onboardingNext: 'Next',
     onboardingStart: 'Got it!',
+
+    // Explore CTA
+    exploreCardAction: 'Explore',
 
     // Artisan Nav
     artisanNavDashboard: 'Dashboard',
