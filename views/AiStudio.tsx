@@ -1,7 +1,8 @@
-import React, { useState, useCallback } from 'react';
-import type { Craft } from '../types';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import type { Craft, TranslationOption } from '../types';
 import { useAppContext } from '../contexts/AppContext';
 import { generateCraftImage } from '../services/geminiService';
+import { getMahjongTranslationSuggestions } from '../services/translationService';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface AiStudioProps {
@@ -14,7 +15,13 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [translationOptions, setTranslationOptions] = useState<TranslationOption[]>([]);
+  const [selectedTranslation, setSelectedTranslation] = useState<TranslationOption | null>(null);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translationError, setTranslationError] = useState<string | null>(null);
   const [lastUsedPrompt, setLastUsedPrompt] = useState('');
+  const [lastOriginalPrompt, setLastOriginalPrompt] = useState('');
+  const [recentlyUsedTranslation, setRecentlyUsedTranslation] = useState<TranslationOption | null>(null);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
@@ -23,30 +30,98 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
   const [contactSuccess, setContactSuccess] = useState(false);
   const { addAiCreation } = useAppContext();
   const { language, t } = useLanguage();
+  const isMahjongCraft = craft.category === 'mahjong' || craft.name.en.toLowerCase().includes('mahjong');
+  const requiresTranslation = language === 'en' && isMahjongCraft;
+  const translationStrategyLabels = useMemo(() => ({
+    phonetic: t('aiStudioTranslationStrategyPhonetic'),
+    meaning: t('aiStudioTranslationStrategyMeaning'),
+    mixed: t('aiStudioTranslationStrategyMixed'),
+  }), [t]);
+
+  useEffect(() => {
+    setTranslationOptions([]);
+    setSelectedTranslation(null);
+    setTranslationError(null);
+    setIsTranslating(false);
+    setRecentlyUsedTranslation(null);
+  }, [requiresTranslation, craft.id]);
+
+  const handleSelectTranslation = useCallback((option: TranslationOption) => {
+    setSelectedTranslation(option);
+    setError(null);
+  }, []);
+
+  const handlePromptChange = useCallback((value: string) => {
+    setPrompt(value);
+    if (requiresTranslation) {
+      setTranslationOptions([]);
+      setSelectedTranslation(null);
+      setTranslationError(null);
+      setRecentlyUsedTranslation(null);
+    }
+  }, [requiresTranslation]);
 
   const handleGenerate = useCallback(async () => {
-    if (!prompt) {
-      setError(t('aiStudioErrorPrompt'));
-      return;
-    }
     const trimmedPrompt = prompt.trim();
     if (!trimmedPrompt) {
       setError(t('aiStudioErrorPrompt'));
       return;
     }
-    setIsLoading(true);
+
     setError(null);
+
+    if (requiresTranslation) {
+      setLastOriginalPrompt(trimmedPrompt);
+      if (!translationOptions.length) {
+        setIsTranslating(true);
+        setTranslationError(null);
+        try {
+          const options = await getMahjongTranslationSuggestions(trimmedPrompt);
+          if (!options.length) {
+            setTranslationError(t('aiStudioTranslationNoResult'));
+          } else {
+            setTranslationOptions(options);
+            setSelectedTranslation(options[0]);
+          }
+        } catch (err) {
+          console.error(err);
+          setTranslationError(t('aiStudioTranslationError'));
+        } finally {
+          setIsTranslating(false);
+        }
+        return;
+      }
+
+      if (!selectedTranslation) {
+        setError(t('aiStudioTranslationSelectInstruction'));
+        return;
+      }
+    } else {
+      setLastOriginalPrompt(trimmedPrompt);
+    }
+
+    const effectivePrompt = requiresTranslation && selectedTranslation
+      ? selectedTranslation.chinese
+      : trimmedPrompt;
+
+    const modelPrompt = requiresTranslation && selectedTranslation
+      ? `${selectedTranslation.chinese} (${selectedTranslation.pronunciation}) — ${selectedTranslation.explanation}`
+      : effectivePrompt;
+
+    setIsLoading(true);
+    setTranslationError(null);
     setGeneratedImage(null);
-    setLastUsedPrompt(trimmedPrompt);
+    setLastUsedPrompt(effectivePrompt);
 
     try {
-      const imageUrl = await generateCraftImage(craft.name[language], trimmedPrompt);
+      const imageUrl = await generateCraftImage(craft.name[language], modelPrompt);
       setGeneratedImage(imageUrl);
+      setRecentlyUsedTranslation(requiresTranslation && selectedTranslation ? { ...selectedTranslation } : null);
       addAiCreation({
-          craftId: craft.id,
-          craftName: craft.name[language],
-          prompt: trimmedPrompt,
-          imageUrl,
+        craftId: craft.id,
+        craftName: craft.name[language],
+        prompt: effectivePrompt,
+        imageUrl,
       });
     } catch (err) {
       console.error(err);
@@ -54,20 +129,36 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [prompt, craft, addAiCreation, language, t]);
+  }, [
+    prompt,
+    requiresTranslation,
+    translationOptions,
+    selectedTranslation,
+    craft,
+    language,
+    addAiCreation,
+    getMahjongTranslationSuggestions,
+    t,
+  ]);
 
   const handleOpenContact = useCallback(() => {
     setContactName('');
     setContactEmail('');
-    const messageTemplate = t('aiStudioContactMessageTemplate', {
-      artisan: craft.artisan[language],
-      prompt: lastUsedPrompt || prompt,
-    });
+    const messageTemplate = recentlyUsedTranslation
+      ? t('aiStudioContactMessageTemplateTranslated', {
+          artisan: craft.artisan[language],
+          translation: recentlyUsedTranslation.chinese,
+          original: lastOriginalPrompt || prompt,
+        })
+      : t('aiStudioContactMessageTemplate', {
+          artisan: craft.artisan[language],
+          prompt: lastUsedPrompt || prompt,
+        });
     setContactMessage(messageTemplate);
     setContactSuccess(false);
     setIsSubmittingContact(false);
     setIsContactOpen(true);
-  }, [craft, language, lastUsedPrompt, prompt, t]);
+  }, [craft, language, lastUsedPrompt, prompt, recentlyUsedTranslation, lastOriginalPrompt, t]);
 
   const handleCloseContact = useCallback(() => {
     setIsContactOpen(false);
@@ -84,6 +175,13 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
       setContactSuccess(true);
     }, 600);
   }, [contactSuccess, isSubmittingContact]);
+
+  const disableGenerate = isLoading || isTranslating || !prompt.trim();
+  const generateButtonLabel = isLoading
+    ? t('aiStudioGenerating')
+    : requiresTranslation && translationOptions.length
+      ? t('aiStudioGenerateWithTranslation', { translation: selectedTranslation?.chinese ?? t('aiStudioTranslationLabelFallback') })
+      : t('aiStudioGenerate');
 
   return (
     <div className="h-full w-full bg-[var(--color-bg)] flex flex-col overflow-y-auto">
@@ -116,6 +214,71 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
             </div>
           )}
         </div>
+
+        {requiresTranslation && (isTranslating || translationOptions.length > 0 || translationError) && (
+          <div className="bg-[var(--color-surface)] p-4 rounded-xl mt-4 border border-[var(--color-border)] space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-[16px] font-semibold text-[var(--color-text-primary)]">{t('aiStudioTranslationTitle')}</h3>
+                <p className="text-[13px] text-[var(--color-text-secondary)]">{t('aiStudioTranslationSubtitle')}</p>
+                {(lastOriginalPrompt || prompt) && (
+                  <p className="mt-2 text-[12px] text-[var(--color-text-secondary)]">
+                    {t('aiStudioTranslationOriginalLabel', { original: lastOriginalPrompt || prompt })}
+                  </p>
+                )}
+              </div>
+              {isTranslating && (
+                <div className="flex items-center gap-2 text-[12px] text-[var(--color-primary-accent)]">
+                  <span className="w-3 h-3 border-2 border-[var(--color-primary-accent)] border-t-transparent rounded-full animate-spin"></span>
+                  {t('aiStudioTranslationLoading')}
+                </div>
+              )}
+            </div>
+
+            {translationOptions.length > 0 && (
+              <div className="space-y-3">
+                {translationOptions.map((option) => {
+                  const isActive = selectedTranslation?.id === option.id;
+                  const strategyLabel = translationStrategyLabels[option.strategy] || translationStrategyLabels.mixed;
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => handleSelectTranslation(option)}
+                      className={`w-full text-left rounded-xl border px-4 py-3 transition-colors ${
+                        isActive
+                          ? 'border-[var(--color-primary-accent)] bg-[var(--color-primary-accent)]/10'
+                          : 'border-[var(--color-border)] bg-[var(--color-bg)] hover:border-[var(--color-primary-accent)]/60'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[18px] font-semibold text-[var(--color-text-primary)]">{option.chinese}</span>
+                        <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--color-primary-accent)]">
+                          {strategyLabel}
+                        </span>
+                      </div>
+                      {option.pronunciation && (
+                        <p className="text-[12px] text-[var(--color-text-secondary)] mt-1">
+                          {t('aiStudioTranslationOptionPronunciation', { pronunciation: option.pronunciation })}
+                        </p>
+                      )}
+                      <p className="text-[13px] text-[var(--color-text-secondary)] mt-1 leading-snug">
+                        {option.explanation}
+                      </p>
+                    </button>
+                  );
+                })}
+                <p className="text-[11px] text-[var(--color-text-secondary)]">
+                  {t('aiStudioTranslationUsePromptHint')}
+                </p>
+              </div>
+            )}
+
+            {translationError && (
+              <p className="text-[13px] text-[var(--color-error)]">{translationError}</p>
+            )}
+          </div>
+        )}
         
         {generatedImage && (
              <div className="bg-[var(--color-surface)] p-4 rounded-xl text-center mt-4 border border-[var(--color-border)] ios-shadow">
@@ -132,17 +295,17 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
         <div className="mt-4">
           <textarea
             value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
+            onChange={(e) => handlePromptChange(e.target.value)}
             placeholder={t('aiStudioInputPlaceholder')}
             rows={3}
             className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-accent)] resize-none"
             disabled={isLoading}
           />
-          <button 
+          <button
             onClick={handleGenerate}
-            disabled={isLoading || !prompt}
+            disabled={disableGenerate}
             className="w-full mt-2 bg-[var(--color-primary-accent)] text-white font-bold py-4 px-6 rounded-full transition-all duration-300 hover:scale-105 disabled:bg-[var(--color-secondary-accent)] disabled:cursor-not-allowed disabled:scale-100">
-            {isLoading ? t('aiStudioGenerating') : t('aiStudioGenerate')}
+            {generateButtonLabel}
           </button>
         </div>
       </div>
