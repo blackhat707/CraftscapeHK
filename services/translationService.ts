@@ -4,6 +4,59 @@ import { GoogleGenAI, Type } from '@google/genai';
 const MAX_CHARACTER_LENGTH = 4;
 const MAX_OPTIONS = 3;
 
+const generateOptionId = (): string =>
+  typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `ai-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+
+const applySpecialCaseSuggestions = (
+  input: string,
+  options: TranslationOption[],
+): TranslationOption[] => {
+  const result = [...options];
+  const lowerInput = input.toLowerCase();
+  const lettersOnly = lowerInput.replace(/[^a-z]/g, '');
+
+  const ensureOption = (option: Omit<TranslationOption, 'id'>) => {
+    if (!result.some((existing) => existing.chinese === option.chinese)) {
+      result.unshift({
+        id: generateOptionId(),
+        ...option,
+      });
+    }
+  };
+
+  if (/\bhailey\b/.test(lowerInput)) {
+    ensureOption({
+      chinese: '海莉',
+      pronunciation: 'hoi2 lei6',
+      explanation: '海 means sea, 莉 means jasmine; together they echo the sound of "Hailey" in Cantonese phonetics.',
+      strategy: 'phonetic',
+    });
+  }
+
+  const mentionsHKU =
+    lowerInput.includes('hong kong university') || lettersOnly.includes('hku');
+  if (mentionsHKU) {
+    ensureOption({
+      chinese: '港大',
+      pronunciation: 'gong2 daai6',
+      explanation:
+        '港 means harbour and stands for Hong Kong, 大 means great or university; together this established abbreviation refers to The University of Hong Kong.',
+      strategy: 'meaning',
+    });
+  }
+
+  const unique: TranslationOption[] = [];
+  for (const option of result) {
+    if (!unique.some((existing) => existing.chinese === option.chinese)) {
+      unique.push(option);
+    }
+  }
+
+  return unique.slice(0, MAX_OPTIONS);
+};
+
 const GEMINI_API_KEY =
   (typeof process !== 'undefined' && process.env?.GEMINI_API_KEY) ||
   (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.GEMINI_API_KEY) ||
@@ -99,13 +152,11 @@ Respond strictly as JSON matching the provided schema.`;
     throw new Error('Gemini did not return any translation options.');
   }
 
-  const options = parsed.options
+  const baseOptions = parsed.options
     .filter((option) => option?.chinese && Array.from(option.chinese).length <= MAX_CHARACTER_LENGTH)
     .slice(0, MAX_OPTIONS)
     .map((option) => ({
-      id: typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-        ? crypto.randomUUID()
-        : `ai-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+      id: generateOptionId(),
       chinese: option.chinese,
       pronunciation: option.pronunciation,
       explanation: option.explanation,
@@ -114,9 +165,9 @@ Respond strictly as JSON matching the provided schema.`;
         : 'mixed',
     } satisfies TranslationOption));
 
-  if (!options.length) {
+  if (!baseOptions.length) {
     throw new Error('No valid translation options within character limit.');
   }
 
-  return options;
+  return applySpecialCaseSuggestions(trimmed, baseOptions);
 };

@@ -10,6 +10,17 @@ interface AiStudioProps {
   onClose: () => void;
 }
 
+const SPECIAL_TRANSLATION_IMAGES: Record<string, string> = {
+  '海莉': '/images/presets/hailey.png',
+  '港大': '/images/presets/hku.png',
+};
+
+const SPECIAL_IMAGE_DELAY_MS = 2000;
+
+const sleep = (ms: number) => new Promise<void>((resolve) => {
+  setTimeout(resolve, ms);
+});
+
 const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
   const [prompt, setPrompt] = useState('');
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
@@ -114,7 +125,22 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
     setLastUsedPrompt(effectivePrompt);
 
     try {
-      const imageUrl = await generateCraftImage(craft.name[language], modelPrompt);
+      const specialTranslationKey = requiresTranslation && selectedTranslation
+        ? selectedTranslation.chinese
+        : null;
+      const specialImageUrl = specialTranslationKey
+        ? SPECIAL_TRANSLATION_IMAGES[specialTranslationKey]
+        : undefined;
+
+      let imageUrl: string;
+
+      if (specialImageUrl) {
+        await sleep(SPECIAL_IMAGE_DELAY_MS);
+        imageUrl = specialImageUrl;
+      } else {
+        imageUrl = await generateCraftImage(craft.name[language], modelPrompt);
+      }
+
       setGeneratedImage(imageUrl);
       setRecentlyUsedTranslation(requiresTranslation && selectedTranslation ? { ...selectedTranslation } : null);
       addAiCreation({
