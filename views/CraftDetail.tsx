@@ -108,7 +108,7 @@ const CraftDetail: React.FC<CraftDetailProps> = ({ craft, onClose, onStartCreati
             <span className="text-2xl">🎨</span>
           </div>
           <h3 className="text-2xl font-bold text-[var(--color-text-primary)] mb-4">
-            想創作屬於你的版本嗎？
+            {t('craftDetailCtaTitle')}
           </h3>
           <p className="text-base text-[var(--color-text-secondary)] mb-8 leading-relaxed">
             {isLetterpress 
