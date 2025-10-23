@@ -178,4 +178,15 @@ export const en = {
     
     // Artisan Chatroom
     artisanChatroomProductInquiry: 'Inquiring about:',
+    artisanChatroomShowTranslated: 'Show Cantonese',
+    artisanChatroomShowOriginal: 'Show original text',
+    artisanChatroomOriginalLabel: 'Original ({language})',
+    artisanChatroomTranslatedLabel: 'Translated ({language})',
+    artisanChatroomAutoTranslationFallback: 'Auto translation:',
+    artisanChatroomAutoTranslatedTag: 'Auto translated',
+    artisanChatroomAutoTranslateNotice: 'We’ll send this in English automatically:',
+    artisanChatroomYouLabel: 'You',
+    artisanChatroomCustomerLabel: 'Customer',
+    languageEnglish: 'English',
+    languageChinese: 'Chinese',
 };

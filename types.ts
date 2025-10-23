@@ -65,6 +65,15 @@ export interface Order {
     status: OrderStatus;
 }
 
+export interface ChatMessage {
+    id: string;
+    sender: 'customer' | 'artisan';
+    originalText: string;
+    translatedText?: string;
+    language: 'en' | 'zh';
+    timestamp: string;
+}
+
 export interface MessageThread {
     id: string;
     customerName: string;
@@ -73,6 +82,7 @@ export interface MessageThread {
     unread: boolean;
     avatar: string;
     productId: number;
+    messages?: ChatMessage[];
 }
 
 export interface AiCreation {

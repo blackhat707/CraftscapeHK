@@ -174,4 +174,15 @@ export const zh = {
     
     // Artisan Chatroom
     artisanChatroomProductInquiry: '查詢商品：',
+    artisanChatroomShowTranslated: '顯示中文翻譯',
+    artisanChatroomShowOriginal: '顯示原文',
+    artisanChatroomOriginalLabel: '原文（{language}）',
+    artisanChatroomTranslatedLabel: '翻譯（{language}）',
+    artisanChatroomAutoTranslationFallback: '自動翻譯:',
+    artisanChatroomAutoTranslatedTag: '自動翻譯',
+    artisanChatroomAutoTranslateNotice: '系統會自動以英文發送：',
+    artisanChatroomYouLabel: '我',
+    artisanChatroomCustomerLabel: '顧客',
+    languageEnglish: '英文',
+    languageChinese: '中文',
 };

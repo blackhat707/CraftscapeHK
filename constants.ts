@@ -250,42 +250,197 @@ export const ORDERS: Order[] = [
 ];
 
 export const MESSAGE_THREADS: MessageThread[] = [
-    {
-        id: "MSG-001",
-        customerName: "陳小姐",
-        lastMessage: "你好！請問關於廣彩茶具，可以訂製圖案嗎？",
-        timestamp: "下午 3:45",
-        unread: true,
-        avatar: "https://picsum.photos/seed/msg1/100/100",
-        productId: 1
-    },
-    {
-        id: "MSG-002",
-        customerName: "Mr. Smith",
-        lastMessage: "Thank you for the quick shipping!",
-        timestamp: "上午 11:20",
-        unread: true,
-        avatar: "https://picsum.photos/seed/msg2/100/100",
-        productId: 5
-    },
-    {
-        id: "MSG-003",
-        customerName: "設計師 Ada",
-        lastMessage: "你好，上次關於AI創作的聯絡，想討論一下實體化的可能性...",
-        timestamp: "昨天",
-        unread: true,
-        avatar: "https://picsum.photos/seed/msg3/100/100",
-        productId: 2
-    },
-    {
-        id: "MSG-004",
-        customerName: "王先生",
-        lastMessage: "收到了，非常滿意！",
-        timestamp: "星期二",
-        unread: false,
-        avatar: "https://picsum.photos/seed/msg4/100/100",
-        productId: 1
-    },
+  {
+    id: "MSG-001",
+    customerName: "陳小姐",
+    lastMessage: "麻煩報一報價錢，多謝！",
+    timestamp: "下午 3:45",
+    unread: true,
+    avatar: "https://picsum.photos/seed/msg1/100/100",
+    productId: 1,
+    messages: [
+      {
+        id: "MSG-001-1",
+        sender: "customer",
+        originalText: "Hi there! Can I customise the pattern on the Canton porcelain tea set?",
+        translatedText: "你好！請問關於廣彩茶具，可以訂製圖案嗎？",
+        language: "en",
+        timestamp: "下午 3:20"
+      },
+      {
+        id: "MSG-001-2",
+        sender: "artisan",
+        originalText: "可以的，我哋可以跟相片或者草圖製作。你想換成咩圖案呢？",
+        translatedText: "Yes, we can work from a photo or sketch. What pattern would you like?",
+        language: "zh",
+        timestamp: "下午 3:26"
+      },
+      {
+        id: "MSG-001-3",
+        sender: "customer",
+        originalText: "I'd love a dragon-and-phoenix motif. Would a colourful palette feel too busy?",
+        translatedText: "我想要一個龍鳳呈祥嘅畫面，彩色會唔會太花？",
+        language: "en",
+        timestamp: "下午 3:32"
+      },
+      {
+        id: "MSG-001-4",
+        sender: "artisan",
+        originalText: "可以做到柔和啲嘅色調，保持細節之餘不會太花。",
+        translatedText: "We can keep the palette softer so the details show without feeling overwhelming.",
+        language: "zh",
+        timestamp: "下午 3:37"
+      },
+      {
+        id: "MSG-001-5",
+        sender: "customer",
+        originalText: "Could you share a quote? Thanks so much!",
+        translatedText: "麻煩報一報價錢，多謝！",
+        language: "en",
+        timestamp: "下午 3:45"
+      }
+    ]
+  },
+  {
+    id: "MSG-002",
+    customerName: "Mr. Smith",
+    lastMessage: "Looking forward to the sample proof.",
+    timestamp: "上午 11:20",
+    unread: true,
+    avatar: "https://picsum.photos/seed/msg2/100/100",
+    productId: 5,
+    messages: [
+      {
+        id: "MSG-002-1",
+        sender: "customer",
+        originalText: "The neon sign arrived safely! Thank you for the quick shipping!",
+        translatedText: "霓虹燈已經安全送到！多謝你哋咁快出貨！",
+        language: "en",
+        timestamp: "上午 10:02"
+      },
+      {
+        id: "MSG-002-2",
+        sender: "artisan",
+        originalText: "好開心聽到你滿意！如果之後需要保養幫手，隨時搵我哋。",
+        translatedText: "Great to hear you're happy! Let us know anytime if you need maintenance support.",
+        language: "zh",
+        timestamp: "上午 10:10"
+      },
+      {
+        id: "MSG-002-3",
+        sender: "customer",
+        originalText: "Could we try a softer pink for the lettering? Looking forward to the sample proof.",
+        translatedText: "我哋可唔可以試吓用柔和啲嘅粉紅色做字樣？等緊你哋嘅樣板。",
+        language: "en",
+        timestamp: "上午 11:20"
+      }
+    ]
+  },
+  {
+    id: "MSG-003",
+    customerName: "設計師 Ada",
+    lastMessage: "今晚前會寫個提案俾你。",
+    timestamp: "昨天",
+    unread: false,
+    avatar: "https://picsum.photos/seed/msg3/100/100",
+    productId: 2,
+    messages: [
+      {
+        id: "MSG-003-1",
+        sender: "customer",
+        originalText: "Hi! I'd love to revisit the AI concept and talk about making it real.",
+        translatedText: "你好，上次關於AI創作的聯絡，想討論一下實體化的可能性。",
+        language: "en",
+        timestamp: "昨天 10:05"
+      },
+      {
+        id: "MSG-003-2",
+        sender: "artisan",
+        originalText: "冇問題，我哋可以先試做一個玻璃霓虹樣板。",
+        translatedText: "Sure thing—we can prototype a glass neon sample first.",
+        language: "zh",
+        timestamp: "昨天 10:18"
+      },
+      {
+        id: "MSG-003-3",
+        sender: "customer",
+        originalText: "I'll draft a proposal for you tonight.",
+        translatedText: "今晚前會寫個提案俾你。",
+        language: "en",
+        timestamp: "昨天 17:42"
+      }
+    ]
+  },
+  {
+    id: "MSG-004",
+    customerName: "王先生",
+    lastMessage: "多謝晒！",
+    timestamp: "星期二",
+    unread: false,
+    avatar: "https://picsum.photos/seed/msg4/100/100",
+    productId: 1,
+    messages: [
+      {
+        id: "MSG-004-1",
+        sender: "customer",
+        originalText: "Just received it and I'm thrilled!",
+        translatedText: "收到了，非常滿意！",
+        language: "en",
+        timestamp: "星期二 09:05"
+      },
+      {
+        id: "MSG-004-2",
+        sender: "artisan",
+        originalText: "多謝支持，祝你使用愉快！",
+        translatedText: "Thanks for your support—enjoy!",
+        language: "zh",
+        timestamp: "星期二 09:12"
+      },
+      {
+        id: "MSG-004-3",
+        sender: "customer",
+        originalText: "Thanks again!",
+        translatedText: "多謝晒！",
+        language: "en",
+        timestamp: "星期二 09:13"
+      }
+    ]
+  },
+  {
+    id: "MSG-005",
+    customerName: "Emily",
+    lastMessage: "I'll share the brief tomorrow morning.",
+    timestamp: "星期一",
+    unread: true,
+    avatar: "https://picsum.photos/seed/msg5/100/100",
+    productId: 3,
+    messages: [
+      {
+        id: "MSG-005-1",
+        sender: "customer",
+        originalText: "Hey! We're planning a Mahjong-themed corporate gift set.",
+        translatedText: "你好！我哋打算設計一套麻雀主題嘅公司禮品。",
+        language: "en",
+        timestamp: "星期一 14:10"
+      },
+      {
+        id: "MSG-005-2",
+        sender: "artisan",
+        originalText: "好呀，可以提供多少數量同預算？",
+        translatedText: "Great! Could you share the quantity and budget?",
+        language: "zh",
+        timestamp: "星期一 14:22"
+      },
+      {
+        id: "MSG-005-3",
+        sender: "customer",
+        originalText: "I'll share the brief tomorrow morning.",
+        translatedText: "我聽日朝早會發份簡介畀你。",
+        language: "en",
+        timestamp: "星期一 14:35"
+      }
+    ]
+  }
 ];
 
 // TextLab Glyph Library

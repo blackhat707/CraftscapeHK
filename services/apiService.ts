@@ -86,7 +86,30 @@ export const getArtisans = async (): Promise<Artisan[]> => {
 };
 
 export const getMessageThreads = async (): Promise<MessageThread[]> => {
-    return apiRequest<MessageThread[]>('/messages');
+    const threads = await apiRequest<MessageThread[]>('/messages');
+
+    try {
+        const { MESSAGE_THREADS } = await import('../constants');
+        const enrichedMap = new Map(MESSAGE_THREADS.map(thread => [thread.id, thread]));
+
+        return threads.map(thread => {
+            const enriched = enrichedMap.get(thread.id);
+            if (!enriched) {
+                return thread;
+            }
+
+            return {
+                ...thread,
+                lastMessage: enriched.lastMessage,
+                timestamp: enriched.timestamp,
+                avatar: enriched.avatar,
+                messages: enriched.messages,
+            };
+        });
+    } catch (error) {
+        console.warn('Failed to enrich message threads with local data:', error);
+        return threads;
+    }
 };
 
 /**
