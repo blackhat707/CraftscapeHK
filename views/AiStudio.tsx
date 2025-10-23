@@ -14,6 +14,13 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastUsedPrompt, setLastUsedPrompt] = useState('');
+  const [isContactOpen, setIsContactOpen] = useState(false);
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactMessage, setContactMessage] = useState('');
+  const [isSubmittingContact, setIsSubmittingContact] = useState(false);
+  const [contactSuccess, setContactSuccess] = useState(false);
   const { addAiCreation } = useAppContext();
   const { language, t } = useLanguage();
 
@@ -22,18 +29,24 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
       setError(t('aiStudioErrorPrompt'));
       return;
     }
+    const trimmedPrompt = prompt.trim();
+    if (!trimmedPrompt) {
+      setError(t('aiStudioErrorPrompt'));
+      return;
+    }
     setIsLoading(true);
     setError(null);
     setGeneratedImage(null);
+    setLastUsedPrompt(trimmedPrompt);
 
     try {
-      const imageUrl = await generateCraftImage(craft.name[language], prompt);
+      const imageUrl = await generateCraftImage(craft.name[language], trimmedPrompt);
       setGeneratedImage(imageUrl);
       addAiCreation({
           craftId: craft.id,
           craftName: craft.name[language],
-          prompt: prompt,
-          imageUrl: imageUrl,
+          prompt: trimmedPrompt,
+          imageUrl,
       });
     } catch (err) {
       console.error(err);
@@ -42,6 +55,35 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
       setIsLoading(false);
     }
   }, [prompt, craft, addAiCreation, language, t]);
+
+  const handleOpenContact = useCallback(() => {
+    setContactName('');
+    setContactEmail('');
+    const messageTemplate = t('aiStudioContactMessageTemplate', {
+      artisan: craft.artisan[language],
+      prompt: lastUsedPrompt || prompt,
+    });
+    setContactMessage(messageTemplate);
+    setContactSuccess(false);
+    setIsSubmittingContact(false);
+    setIsContactOpen(true);
+  }, [craft, language, lastUsedPrompt, prompt, t]);
+
+  const handleCloseContact = useCallback(() => {
+    setIsContactOpen(false);
+  }, []);
+
+  const handleSubmitContact = useCallback((event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (isSubmittingContact || contactSuccess) {
+      return;
+    }
+    setIsSubmittingContact(true);
+    setTimeout(() => {
+      setIsSubmittingContact(false);
+      setContactSuccess(true);
+    }, 600);
+  }, [contactSuccess, isSubmittingContact]);
 
   return (
     <div className="h-full w-full bg-[var(--color-bg)] flex flex-col overflow-y-auto">
@@ -78,7 +120,10 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
         {generatedImage && (
              <div className="bg-[var(--color-surface)] p-4 rounded-xl text-center mt-4 border border-[var(--color-border)] ios-shadow">
                 <h3 className="text-[17px] font-semibold text-[var(--color-primary-accent)]">{t('aiStudioCtaTitle')}</h3>
-                <button className="mt-2 bg-[var(--color-primary-accent)] text-white font-semibold py-2 px-5 rounded-full text-[15px] hover:opacity-80 transition-colors">
+                <button
+                  onClick={handleOpenContact}
+                  className="mt-2 bg-[var(--color-primary-accent)] text-white font-semibold py-2 px-5 rounded-full text-[15px] hover:opacity-80 transition-colors"
+                >
                     {t('aiStudioCtaButton')}
                 </button>
             </div>
@@ -101,6 +146,119 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
           </button>
         </div>
       </div>
+
+      {isContactOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-md bg-[var(--color-surface)] rounded-3xl border border-[var(--color-border)] shadow-2xl">
+            <div className="flex items-start justify-between p-5 border-b border-[var(--color-border)]">
+              <div>
+                <h2 className="text-[20px] font-semibold text-[var(--color-text-primary)]">
+                  {t('aiStudioContactTitle', { artisan: craft.artisan[language] })}
+                </h2>
+                <p className="text-[13px] text-[var(--color-text-secondary)] mt-1">{t('aiStudioContactSubtitle')}</p>
+              </div>
+              <button
+                onClick={handleCloseContact}
+                className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {contactSuccess ? (
+              <div className="p-6 text-center space-y-4">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary-accent)]/10 text-[var(--color-primary-accent)]">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-[18px] font-semibold text-[var(--color-text-primary)]">{t('aiStudioContactSuccessTitle')}</h3>
+                <p className="text-[14px] text-[var(--color-text-secondary)]">
+                  {t('aiStudioContactSuccessDescription', { artisan: craft.artisan[language] })}
+                </p>
+                <button
+                  onClick={handleCloseContact}
+                  className="w-full bg-[var(--color-primary-accent)] text-white font-semibold py-3 px-4 rounded-xl hover:opacity-90 transition-colors"
+                >
+                  {t('aiStudioContactClose')}
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmitContact} className="p-6 space-y-5">
+                <div className="flex gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
+                  {generatedImage && (
+                    <img
+                      src={generatedImage}
+                      alt={t('aiStudioContactPromptThumbnailAlt')}
+                      className="h-16 w-16 rounded-xl object-cover"
+                    />
+                  )}
+                  <div className="flex-1">
+                    <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-secondary)]">
+                      {t('aiStudioContactPromptLabel')}
+                    </p>
+                    <p className="text-[14px] text-[var(--color-text-primary)] mt-1 leading-snug">
+                      {lastUsedPrompt || prompt}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">
+                    {t('aiStudioContactNameLabel')}
+                  </label>
+                  <input
+                    type="text"
+                    value={contactName}
+                    onChange={(event) => setContactName(event.target.value)}
+                    required
+                    placeholder={t('aiStudioContactNamePlaceholder')}
+                    className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] py-3 px-4 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-accent)]"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">
+                    {t('aiStudioContactEmailLabel')}
+                  </label>
+                  <input
+                    type="email"
+                    value={contactEmail}
+                    onChange={(event) => setContactEmail(event.target.value)}
+                    required
+                    placeholder="you@example.com"
+                    className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] py-3 px-4 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-accent)]"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">
+                    {t('aiStudioContactMessageLabel')}
+                  </label>
+                  <textarea
+                    value={contactMessage}
+                    onChange={(event) => setContactMessage(event.target.value)}
+                    rows={4}
+                    required
+                    placeholder={t('aiStudioContactMessagePlaceholder')}
+                    className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] py-3 px-4 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-accent)] resize-none"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmittingContact}
+                  className="w-full bg-[var(--color-primary-accent)] text-white font-semibold py-3 px-4 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isSubmittingContact ? t('aiStudioContactSubmitting') : t('aiStudioContactSubmit')}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
