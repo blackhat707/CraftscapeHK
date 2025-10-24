@@ -76,7 +76,7 @@ export interface ChatMessage {
 
 export interface FaceProfile {
     id: string;
-    label: string;
+    label: LocalizedString;
     imageUrl: string;
     source: 'preset' | 'upload';
     createdAt: string;

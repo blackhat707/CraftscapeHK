@@ -84,7 +84,7 @@ const PRODUCTS = [
     price: 4560, 
     priceDisplay: { zh: "HKD $30-50 / 隻", en: "HKD $30-50 / tile" },
     priceSubDisplay: { zh: "HKD $4560 / 副", en: "HKD $4560 / set" },
-    image: "https://i.imgur.com/J2Ndpxa.jpeg", 
+    image: "https://zolimacitymag.com/wp-content/uploads/2016/06/Zolima_Majong-Icon_Nicolas-Petit-5.jpg", 
     artisan: { zh: "Polar wafter 師傅", en: "Master Polar Wafter" }, 
     full_description: { zh: `打牌打到好悶，想雕翻啲百撘同朋友打到天昏地暗？🤑
 生日紀念日，唔知送咩俾個雀精好？🤫

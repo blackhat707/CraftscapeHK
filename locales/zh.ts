@@ -162,7 +162,7 @@ export const zh = {
 
     // Onboarding
     onboardingTitle1: '滑動探索傳統工藝',
-    onboardingDesc1: '向右滑動表示喜歡並查看詳情，向左滑動則繼續探索下一個。',
+    onboardingDesc1: '左右滑動以瀏覽不同的傳統工藝',
     onboardingTitle2: '尋找獨一無二的匠心之作',
     onboardingDesc2: '在市集裡，你可以購買由本地師傅親手製作的工藝品。',
     onboardingTitle3: '親身體驗工藝的溫度',

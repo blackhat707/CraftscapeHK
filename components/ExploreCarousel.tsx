@@ -228,6 +228,12 @@ const ExploreCarouselCard: React.FC<ExploreCarouselCardProps> = ({
       onNavigate(1);
     } else if (swipeRight && currentIndex > 0) {
       onNavigate(-1);
+    } else if (swipeRight && currentIndex === 0) {
+      // Swipe right on first card to go to last card
+      onNavigate(totalCrafts - 1);
+    } else if (swipeLeft && currentIndex === totalCrafts - 1) {
+      // Swipe left on last card to go to first card
+      onNavigate(-(totalCrafts - 1));
     }
   }, [craft, currentIndex, dragAxis, isActive, onNavigate, onOpen, openingCardId, swipeThreshold, swipeUpThreshold, totalCrafts]);
 
@@ -302,7 +308,7 @@ const ExploreCarouselCard: React.FC<ExploreCarouselCardProps> = ({
             data-no-drag
             className={`absolute top-6 right-6 z-10 p-3 rounded-full backdrop-blur-md transition-all duration-200 hover:scale-110 ${
               isFavorite
-                ? 'bg-white text-[var(--color-primary-accent)] hover:bg-white/90'
+                ? 'bg-white text-[var(--color-button-cta)] hover:bg-white/90'
                 : 'bg-white/15 text-white hover:bg-white/25'
             }`}
             onClick={handleToggleFavorite}
@@ -324,7 +330,7 @@ const ExploreCarouselCard: React.FC<ExploreCarouselCardProps> = ({
           <motion.button
             type="button"
             data-no-drag
-            className="absolute bottom-8 right-8 w-12 h-12 rounded-full bg-[#E85C4A] text-white flex items-center justify-center shadow-lg shadow-black/30"
+            className="absolute bottom-8 right-8 w-12 h-12 rounded-full bg-[var(--color-button-cta)] text-white flex items-center justify-center shadow-lg shadow-black/30"
             whileTap={{ scale: 0.94 }}
             transition={{ duration: 0.2, ease: 'easeInOut' }}
             onClick={handleOpenClick}

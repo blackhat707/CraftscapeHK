@@ -118,7 +118,7 @@ const CalendarModal: FC<{
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={onClose}
-                    className="absolute inset-0 bg-black/50 z-30 flex items-center justify-center p-4"
+                    className="fixed inset-0 bg-black/50 z-30 flex items-center justify-center p-4"
                 >
                     <motion.div
                         initial={{ scale: 0.9, y: 20, opacity: 0 }}

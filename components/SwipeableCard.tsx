@@ -116,7 +116,11 @@ const SwipeableCard: React.FC<SwipeableCardProps> = ({
           {/* Heart Button */}
           <button 
             onClick={handleHeartClick}
-            className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm p-3 rounded-full text-white transition-all duration-200 hover:bg-white/30 hover:scale-110"
+            className={`absolute top-4 right-4 backdrop-blur-sm p-3 rounded-full transition-all duration-200 hover:scale-110 ${
+              isFavorite(craft.id)
+                ? 'bg-white/90 text-[var(--color-button-cta)] hover:bg-white'
+                : 'bg-white/20 text-white hover:bg-white/30'
+            }`}
             aria-label={isFavorite(craft.id) ? 'Remove from favorites' : 'Add to favorites'}
           >
             <svg 

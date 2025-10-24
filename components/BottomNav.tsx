@@ -85,7 +85,7 @@ const BottomNav: React.FC<{ activeTab: Tab; setActiveTab: (tab: Tab) => void; }>
         <motion.button
           onClick={() => setActiveTab(Tab.Explore)}
           aria-label="Open Explore"
-          className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 ${activeTab === Tab.Explore ? 'bg-[var(--color-primary-accent)] text-white shadow-[0_12px_36px_rgba(232,92,74,0.45)]' : 'bg-[color:rgba(232,92,74,0.15)] text-[var(--color-primary-accent)] shadow-none'}`}
+          className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 ${activeTab === Tab.Explore ? 'bg-[var(--color-primary-accent)] text-white shadow-[0_12px_36px_rgba(5,58,106,0.25)]' : 'bg-[color:rgba(5,58,106,0.15)] text-[var(--color-primary-accent)] shadow-none'}`}
           style={{
             border: '3px solid var(--color-bg)'
           }}

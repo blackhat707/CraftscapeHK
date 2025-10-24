@@ -18,58 +18,60 @@
       }
       
       :root, [data-theme="light"] {
-        /* Museum-style Light Mode */
-        --color-bg: #F8F8F8; /* Clean, minimal art-gallery white */
-        --color-page-bg: #F8F8F8;
-        --color-surface: #FFFFFF; /* Card background with slight elevation */
-        --color-primary-accent: #E85C4A; /* Red-orange CTA color */
-        --color-secondary-accent: #F5F5F5;
-        --color-text-primary: #111111; /* Main content */
-        --color-text-secondary: #666666; /* Descriptions */
-        --color-border: #E0E0E0; /* Subtle separation */
+        /* Modern Blue Palette Light Mode */
+        --color-bg: #F8F9FA; /* Off-white background */
+        --color-page-bg: #F3F4F6; /* Very light grey for page background */
+        --color-surface: #FFFFFF; /* Pure white for cards and content areas */
+        --color-primary-accent: #053A6A; /* Primary Dark Blue for headers, navigation, icons */
+        --color-secondary-accent: #3178AC; /* Secondary Light Blue for buttons, highlights */
+        --color-text-primary: #053A6A; /* Dark blue text for main content */
+        --color-text-secondary: #8a8a8a; /* Neutral grey for descriptions - darker and less green */
+        --color-border: #8a8a8a; /* Neutral grey for borders - darker and less green */
         --color-success: #045832;
-        --color-error: #C16E70;
-        --color-divider: #E0E0E0;
+        --color-error: #972226; /* Accent Red for error messages */
+        --color-divider: #8a8a8a;
 
         /* Button colors */
-        --color-button-bg: #E85C4A;
+        --color-button-bg: #3178AC; /* Secondary Light Blue for main buttons */
         --color-button-text: #FFFFFF;
+        --color-button-cta: #972226; /* Accent Red for CTA buttons */
         
         /* Navigation */
-        --color-nav-bg: rgba(255, 255, 255, 0.8);
-        --color-nav-border: rgba(224, 224, 224, 0.3);
+        --color-nav-bg: rgba(248, 249, 250, 0.8);
+        --color-nav-border: rgba(138, 138, 138, 0.3);
       }
 
       [data-theme="dark"] {
-        /* Museum-style Dark Mode */
-        --color-bg: #121212; /* Immersive, cinematic dark */
-        --color-page-bg: #121212;
-        --color-surface: #1E1E1E; /* Slight elevation */
-        --color-primary-accent: #E85C4A; /* Consistent red-orange CTA */
-        --color-secondary-accent: #2A2A2A;
-        --color-text-primary: #FFFFFF; /* Main content */
-        --color-text-secondary: #AAAAAA; /* Descriptions */
-        --color-border: #2A2A2A; /* Subtle separation */
+        /* Modern Blue Palette Dark Mode */
+        --color-bg: #0A1A2E; /* Dark blue background */
+        --color-page-bg: #0A1A2E;
+        --color-surface: #16213E; /* Slightly lighter dark blue for cards */
+        --color-primary-accent: #3178AC; /* Light blue for headers, navigation in dark mode */
+        --color-secondary-accent: #053A6A; /* Dark blue for secondary elements */
+        --color-text-primary: #FFFFFF; /* White text for main content */
+        --color-text-secondary: #8a8a8a; /* Neutral grey for descriptions - darker and less green */
+        --color-border: #2A3B5C; /* Dark blue-grey for borders */
         --color-success: #5A8B73;
-        --color-error: #C16E70;
-        --color-divider: #2A2A2A;
+        --color-error: #972226; /* Accent Red for error messages */
+        --color-divider: #2A3B5C;
 
         /* Button colors */
-        --color-button-bg: #E85C4A;
+        --color-button-bg: #3178AC; /* Light blue for main buttons */
         --color-button-text: #FFFFFF;
+        --color-button-cta: #972226; /* Accent Red for CTA buttons */
         
         /* Navigation */
-        --color-nav-bg: rgba(0, 0, 0, 0.4);
-        --color-nav-border: rgba(42, 42, 42, 0.3);
+        --color-nav-bg: rgba(10, 26, 46, 0.8);
+        --color-nav-border: rgba(42, 59, 92, 0.3);
       }
 
       .ios-shadow {
-        /* Museum-style subtle shadows for light mode */
-        box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.04), 0px 4px 16px rgba(0, 0, 0, 0.06);
+        /* Soft bluish shadows for light mode */
+        box-shadow: 0px 2px 8px rgba(5, 58, 106, 0.08), 0px 4px 16px rgba(5, 58, 106, 0.12);
       }
       [data-theme="dark"] .ios-shadow {
-        /* Museum-style shadows for dark mode */
-        box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2), 0px 4px 16px rgba(0, 0, 0, 0.3);
+        /* Soft bluish shadows for dark mode */
+        box-shadow: 0px 2px 8px rgba(5, 58, 106, 0.15), 0px 4px 16px rgba(5, 58, 106, 0.25);
       }
       
       /* Typography improvements */
@@ -90,11 +92,11 @@
       
       .museum-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.08);
+        box-shadow: 0px 4px 16px rgba(5, 58, 106, 0.15);
       }
       
       [data-theme="dark"] .museum-card:hover {
-        box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.2);
+        box-shadow: 0px 4px 16px rgba(5, 58, 106, 0.25);
       }
       
       /* Navigation styling */

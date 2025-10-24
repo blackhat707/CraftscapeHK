@@ -33,7 +33,7 @@ const ArtisanSettings: React.FC<ArtisanSettingsProps> = ({ onToggleArtisanMode }
             <div className="flex-grow p-6 space-y-3">
                  <button
                     onClick={onToggleArtisanMode}
-                    className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] text-center font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:bg-[var(--color-secondary-accent)] text-[var(--color-text-secondary)]"
+                    className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] text-center font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:bg-[var(--color-secondary-accent)] text-[var(--color-text-primary)]"
                 >
                     {t('artisanSettingsSwitchToUser')}
                 </button>
