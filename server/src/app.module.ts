@@ -6,6 +6,7 @@ import { OrdersModule } from './orders/orders.module';
 import { MessagesModule } from './messages/messages.module';
 import { DatabaseModule } from './database/database.module';
 import { AiModule } from './ai/ai.module';
+import { DebugModule } from './debug/debug.module';
 
 @Controller()
 export class AppController {
@@ -19,7 +20,8 @@ export class AppController {
         crafts: '/api/crafts',
         events: '/api/events',
         orders: '/api/orders',
-        messages: '/api/messages'
+        messages: '/api/messages',
+        debug: '/debug (development only)'
       }
     };
   }
@@ -34,6 +36,7 @@ export class AppController {
     OrdersModule,
     MessagesModule,
     AiModule,
+    DebugModule,
   ],
   controllers: [AppController],
   providers: [],

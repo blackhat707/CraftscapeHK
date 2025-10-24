@@ -6,6 +6,7 @@ import { Product } from '../entities/product.entity';
 import { getGeminiApiKey } from '../config/gemini.config';
 import { getDoubaoConfig, isDoubaoConfigured } from '../config/doubao.config';
 import { generateDoubaoImage } from '../ai/doubao.client';
+import { generateMahjongTileReference } from '../utils/text-to-image.util';
 
 @Injectable()
 export class ProductsService {
@@ -38,10 +39,41 @@ export class ProductsService {
     return /[\u3400-\u9FFF]/.test(value);
   }
 
+  private isMahjongCraft(craftName: string): boolean {
+    const lowerName = craftName.toLowerCase();
+    return lowerName.includes('mahjong') || lowerName.includes('麻雀') || lowerName.includes('麻將');
+  }
+
   async generateCraftImage(craftName: string, userPrompt: string): Promise<{ imageUrl: string }> {
     const aiClient = this.ai;
     try {
-      const fullPrompt = `A high-quality, artistic image of a modern interpretation of a traditional Hong Kong craft: ${craftName}. The design is inspired by: "${userPrompt}". Focus on intricate details and beautiful lighting.`;
+      // Check if this is a mahjong craft and if the prompt contains Chinese characters
+      const isMahjong = this.isMahjongCraft(craftName);
+      const hasChinesePrompt = this.containsChineseCharacters(userPrompt);
+      
+      let referenceImage: string | null = null;
+      let enhancedPrompt = userPrompt;
+
+      // Generate reference image for mahjong with Chinese characters
+      if (isMahjong && hasChinesePrompt) {
+        // Extract only Chinese characters from the prompt (in case it includes pronunciation/explanation)
+        const chineseOnly = userPrompt.match(/[\u3400-\u9FFF]+/g)?.[0] || userPrompt;
+        console.log('Generating mahjong tile reference image with Chinese text:', chineseOnly);
+        referenceImage = generateMahjongTileReference(chineseOnly);
+        
+        // DEBUG: Log reference image details
+        console.log('Reference image generated:');
+        console.log('- Format: PNG (base64 encoded)');
+        console.log('- Size:', Math.round(referenceImage.length / 1024), 'KB');
+        console.log('- Data URL length:', referenceImage.length, 'characters');
+        
+        // Enhance the prompt to use the reference image
+        enhancedPrompt = `A hand-carved traditional Hong Kong mahjong tile with the Chinese character(s) "${userPrompt}" engraved vertically on it. The tile should be made of ivory-colored material (bone or bamboo), with deep, precise carving showing traditional craftsmanship. The character should be centered and prominent, carved in a traditional style matching the reference image. Focus on intricate carving details, elegant typography, and beautiful lighting that highlights the depth of the engraving.`;
+      }
+
+      const fullPrompt = isMahjong && hasChinesePrompt 
+        ? enhancedPrompt
+        : `A high-quality, artistic image of a modern interpretation of a traditional Hong Kong craft: ${craftName}. The design is inspired by: "${userPrompt}". Focus on intricate details and beautiful lighting.`;
 
       const hasChineseInput =
         this.containsChineseCharacters(userPrompt) || this.containsChineseCharacters(craftName);
@@ -63,14 +95,24 @@ export class ProductsService {
         throw new Error("The AI service is not configured on the server.");
       }
 
+      // Configure image generation with optional reference image
+      const generateConfig: any = {
+        numberOfImages: 1,
+        outputMimeType: 'image/jpeg',
+        aspectRatio: '3:4',
+      };
+
+      // For mahjong with reference image, include it as a reference
       const response = await aiClient.models.generateImages({
-        model: 'imagen-4.0-generate-001',
+        model: 'gemini-2.5-flash-latest',
         prompt: fullPrompt,
-        config: {
-          numberOfImages: 1,
-          outputMimeType: 'image/jpeg',
-          aspectRatio: '3:4',
-        },
+        ...(isMahjong && referenceImage ? {
+          referenceImages: [{
+            imageBytes: referenceImage.split(',')[1], // Extract base64 data
+            referenceType: 'REFERENCE_TYPE_STYLE',
+          }],
+        } : {}),
+        config: generateConfig,
       });
 
       if (response.generatedImages && response.generatedImages.length > 0) {

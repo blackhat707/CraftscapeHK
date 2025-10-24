@@ -28,7 +28,7 @@ const config = {
   ai: {
     apiKey: GEMINI_API_KEY,
     enabled: !!GEMINI_API_KEY,
-    imageModel: process.env.GOOGLE_AI_IMAGE_MODEL || 'imagen-4.0-generate-001',
+    imageModel: process.env.GOOGLE_AI_IMAGE_MODEL || 'gemini-2.5-flash-latest',
   },
 
   // JWT Configuration

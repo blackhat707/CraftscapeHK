@@ -76,7 +76,7 @@ export const generateCraftImageApi = async (craftName: string, userPrompt: strin
     await sleep(2000);
 
   const response = await ai.models.generateImages({
-        model: 'imagen-4.0-generate-001',
+        model: 'gemini-2.5-flash-latest',
         prompt: fullPrompt,
         config: {
             numberOfImages: 1,

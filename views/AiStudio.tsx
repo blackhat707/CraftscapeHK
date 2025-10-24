@@ -1,10 +1,16 @@
-import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import type { Craft, TranslationOption, FaceProfile } from '../types';
-import { motion } from 'framer-motion';
-import { useAppContext } from '../contexts/AppContext';
-import { generateCraftImage } from '../services/geminiService';
-import { getMahjongTranslationSuggestions } from '../services/translationService';
-import { useLanguage } from '../contexts/LanguageContext';
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
+import type { Craft, TranslationOption, FaceProfile } from "../types";
+import { motion } from "framer-motion";
+import { useAppContext } from "../contexts/AppContext";
+import { generateCraftImage } from "../services/geminiService";
+import { getMahjongTranslationSuggestions } from "../services/translationService";
+import { useLanguage } from "../contexts/LanguageContext";
 
 interface AiStudioProps {
   craft: Craft;
@@ -12,28 +18,33 @@ interface AiStudioProps {
 }
 
 const SPECIAL_TRANSLATION_IMAGES: Record<string, string> = {
-  '海莉': '/images/presets/hailey.png',
-  '港大': '/images/presets/hku.png',
+  海莉: "/images/presets/hailey.png",
+  港大: "/images/presets/hku.png",
 };
 
-const SPECIAL_TRANSLATION_IMAGE_FITS: Record<string, 'contain' | 'cover'> = {
-  '海莉': 'cover',
-  '港大': 'cover',
+const SPECIAL_TRANSLATION_IMAGE_FITS: Record<string, "contain" | "cover"> = {
+  海莉: "cover",
+  港大: "cover",
 };
 
 const SPECIAL_IMAGE_DELAY_MS = 2000;
 const PATTERN_PRESET_DELAY_MS = 2500;
 
-const sleep = (ms: number) => new Promise<void>((resolve) => {
-  setTimeout(resolve, ms);
-});
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
 
-const buildCheongsamTryOnPrompt = (face: FaceProfile, craft: Craft, userPrompt: string) => {
+const buildCheongsamTryOnPrompt = (
+  face: FaceProfile,
+  craft: Craft,
+  userPrompt: string
+) => {
   const detailLines = [
-    'Model directive: BANANA FASHION try-on, produce an elegant full-body portrait, cinematic lighting, 4k quality.',
+    "Model directive: fashion try-on, produce an elegant full-body portrait, cinematic lighting, 4k quality.",
     `Garment focus: bespoke ${craft.name.en} with vintage Shanghainese tailoring, high mandarin collar, hand-bound pankou buttons, fluid silk drape.`,
-    'Pose: graceful stance, relaxed shoulders, confident smile.',
-    'Fabric styling: lustrous pearl-white silk with subtle floral embroidery, soft highlights, realistic folds.',
+    "Pose: graceful stance, relaxed shoulders, confident smile.",
+    "Fabric styling: lustrous pearl-white silk with subtle floral embroidery, soft highlights, realistic folds.",
     `Reference face: ${face.imageUrl}`,
   ];
 
@@ -41,50 +52,74 @@ const buildCheongsamTryOnPrompt = (face: FaceProfile, craft: Craft, userPrompt: 
     detailLines.push(`Personal styling notes: ${userPrompt.trim()}`);
   }
 
-  detailLines.push('Keep body proportions natural, preserve face identity accurately, match skin tone and lighting between face and body.');
+  detailLines.push(
+    "Keep body proportions natural, preserve face identity accurately, match skin tone and lighting between face and body."
+  );
 
-  return detailLines.join('\n');
+  return detailLines.join("\n");
 };
 
 const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
-  const [prompt, setPrompt] = useState('');
+  const [prompt, setPrompt] = useState("");
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
-  const [generatedImageFit, setGeneratedImageFit] = useState<'contain' | 'cover'>('contain');
-  const [patternDraftImage, setPatternDraftImage] = useState<string | null>(null);
-  const [patternDraftImageFit, setPatternDraftImageFit] = useState<'contain' | 'cover'>('contain');
+  const [generatedImageFit, setGeneratedImageFit] = useState<
+    "contain" | "cover"
+  >("contain");
+  const [patternDraftImage, setPatternDraftImage] = useState<string | null>(
+    null
+  );
+  const [patternDraftImageFit, setPatternDraftImageFit] = useState<
+    "contain" | "cover"
+  >("contain");
   const [patternDraftFailed, setPatternDraftFailed] = useState(false);
   const [isPatternDraftLoading, setIsPatternDraftLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [translationOptions, setTranslationOptions] = useState<TranslationOption[]>([]);
-  const [selectedTranslation, setSelectedTranslation] = useState<TranslationOption | null>(null);
+  const [translationOptions, setTranslationOptions] = useState<
+    TranslationOption[]
+  >([]);
+  const [selectedTranslation, setSelectedTranslation] =
+    useState<TranslationOption | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
   const [translationError, setTranslationError] = useState<string | null>(null);
-  const [lastUsedPrompt, setLastUsedPrompt] = useState('');
-  const [lastOriginalPrompt, setLastOriginalPrompt] = useState('');
-  const [recentlyUsedTranslation, setRecentlyUsedTranslation] = useState<TranslationOption | null>(null);
+  const [lastUsedPrompt, setLastUsedPrompt] = useState("");
+  const [lastOriginalPrompt, setLastOriginalPrompt] = useState("");
+  const [recentlyUsedTranslation, setRecentlyUsedTranslation] =
+    useState<TranslationOption | null>(null);
   const [isContactOpen, setIsContactOpen] = useState(false);
-  const [contactName, setContactName] = useState('');
-  const [contactEmail, setContactEmail] = useState('');
-  const [contactMessage, setContactMessage] = useState('');
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactMessage, setContactMessage] = useState("");
   const [isSubmittingContact, setIsSubmittingContact] = useState(false);
   const [contactSuccess, setContactSuccess] = useState(false);
   const [shouldShowContactCTA, setShouldShowContactCTA] = useState(false);
-  const [studioMode, setStudioMode] = useState<'concept' | 'try-on'>('concept');
+  const [studioMode, setStudioMode] = useState<"concept" | "try-on">("concept");
   const [selectedFaceId, setSelectedFaceId] = useState<string | null>(null);
   const [isFaceUploading, setIsFaceUploading] = useState(false);
   const [faceUploadError, setFaceUploadError] = useState<string | null>(null);
   const faceFileInputRef = useRef<HTMLInputElement | null>(null);
-  const { addAiCreation, faceProfiles, activeFaceId, addFaceProfile, setActiveFace, addTryOnLook } = useAppContext();
+  const {
+    addAiCreation,
+    faceProfiles,
+    activeFaceId,
+    addFaceProfile,
+    setActiveFace,
+    addTryOnLook,
+  } = useAppContext();
   const { language, t } = useLanguage();
-  const isCheongsamCraft = craft.name.en.toLowerCase().includes('cheongsam');
-  const isMahjongCraft = craft.category === 'mahjong' || craft.name.en.toLowerCase().includes('mahjong');
-  const requiresTranslation = language === 'en' && isMahjongCraft;
-  const translationStrategyLabels = useMemo(() => ({
-    phonetic: t('aiStudioTranslationStrategyPhonetic'),
-    meaning: t('aiStudioTranslationStrategyMeaning'),
-    mixed: t('aiStudioTranslationStrategyMixed'),
-  }), [t]);
+  const isCheongsamCraft = craft.name.en.toLowerCase().includes("cheongsam");
+  const isMahjongCraft =
+    craft.category === "mahjong" ||
+    craft.name.en.toLowerCase().includes("mahjong");
+  const requiresTranslation = language === "en" && isMahjongCraft;
+  const translationStrategyLabels = useMemo(
+    () => ({
+      phonetic: t("aiStudioTranslationStrategyPhonetic"),
+      meaning: t("aiStudioTranslationStrategyMeaning"),
+      mixed: t("aiStudioTranslationStrategyMixed"),
+    }),
+    [t]
+  );
 
   useEffect(() => {
     setTranslationOptions([]);
@@ -101,7 +136,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
         setSelectedFaceId(activeFaceId);
       }
     } else {
-      setStudioMode('concept');
+      setStudioMode("concept");
       setSelectedFaceId(null);
     }
   }, [isCheongsamCraft, activeFaceId, selectedFaceId]);
@@ -114,15 +149,18 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
   }, [activeFaceId, isCheongsamCraft]);
 
   const selectedFace = useMemo(
-    () => (selectedFaceId ? faceProfiles.find(face => face.id === selectedFaceId) ?? null : null),
-    [faceProfiles, selectedFaceId],
+    () =>
+      selectedFaceId
+        ? faceProfiles.find((face) => face.id === selectedFaceId) ?? null
+        : null,
+    [faceProfiles, selectedFaceId]
   );
 
-  const isTryOnMode = isCheongsamCraft && studioMode === 'try-on';
+  const isTryOnMode = isCheongsamCraft && studioMode === "try-on";
   useEffect(() => {
     if (isTryOnMode) {
       setPatternDraftImage(null);
-      setPatternDraftImageFit('contain');
+      setPatternDraftImageFit("contain");
       setPatternDraftFailed(false);
       setIsPatternDraftLoading(false);
     }
@@ -133,69 +171,79 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
     setError(null);
   }, []);
 
-  const handlePromptChange = useCallback((value: string) => {
-    setPrompt(value);
-    setShouldShowContactCTA(false);
-    if (requiresTranslation) {
-      setTranslationOptions([]);
-      setSelectedTranslation(null);
-      setTranslationError(null);
-      setRecentlyUsedTranslation(null);
-    }
-  }, [requiresTranslation]);
+  const handlePromptChange = useCallback(
+    (value: string) => {
+      setPrompt(value);
+      setShouldShowContactCTA(false);
+      if (requiresTranslation) {
+        setTranslationOptions([]);
+        setSelectedTranslation(null);
+        setTranslationError(null);
+        setRecentlyUsedTranslation(null);
+      }
+    },
+    [requiresTranslation]
+  );
 
-  const handleFaceSelect = useCallback((faceId: string) => {
-    setSelectedFaceId(faceId);
-    setActiveFace(faceId);
-    setFaceUploadError(null);
-  }, [setActiveFace]);
+  const handleFaceSelect = useCallback(
+    (faceId: string) => {
+      setSelectedFaceId(faceId);
+      setActiveFace(faceId);
+      setFaceUploadError(null);
+    },
+    [setActiveFace]
+  );
 
   const handleTriggerFaceUpload = useCallback(() => {
     faceFileInputRef.current?.click();
   }, []);
 
-  const handleFaceUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    setIsFaceUploading(true);
-    setFaceUploadError(null);
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const imageUrl = typeof reader.result === 'string' ? reader.result : '';
-      if (!imageUrl) {
-        setFaceUploadError(t('aiStudioFaceUploadError'));
-        setIsFaceUploading(false);
+  const handleFaceUpload = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) {
         return;
       }
-      const label = file.name.replace(/\.[^/.]+$/, '') || t('aiStudioUploadedFaceLabel');
-      const newId = addFaceProfile({
-        label,
-        imageUrl,
-        source: 'upload',
-      });
-      setSelectedFaceId(newId);
-      setIsFaceUploading(false);
-      event.target.value = '';
-    };
-    reader.onerror = () => {
-      setFaceUploadError(t('aiStudioFaceUploadError'));
-      setIsFaceUploading(false);
-    };
-    reader.readAsDataURL(file);
-  }, [addFaceProfile, t]);
+
+      setIsFaceUploading(true);
+      setFaceUploadError(null);
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const imageUrl = typeof reader.result === "string" ? reader.result : "";
+        if (!imageUrl) {
+          setFaceUploadError(t("aiStudioFaceUploadError"));
+          setIsFaceUploading(false);
+          return;
+        }
+        const label =
+          file.name.replace(/\.[^/.]+$/, "") || t("aiStudioUploadedFaceLabel");
+        const newId = addFaceProfile({
+          label,
+          imageUrl,
+          source: "upload",
+        });
+        setSelectedFaceId(newId);
+        setIsFaceUploading(false);
+        event.target.value = "";
+      };
+      reader.onerror = () => {
+        setFaceUploadError(t("aiStudioFaceUploadError"));
+        setIsFaceUploading(false);
+      };
+      reader.readAsDataURL(file);
+    },
+    [addFaceProfile, t]
+  );
 
   const handleGenerate = useCallback(async () => {
     const trimmedPrompt = prompt.trim();
     if (!trimmedPrompt && !isTryOnMode) {
-      setError(t('aiStudioErrorPrompt'));
+      setError(t("aiStudioErrorPrompt"));
       return;
     }
     if (isTryOnMode && !selectedFace) {
-      setError(t('aiStudioTryOnFaceRequired'));
+      setError(t("aiStudioTryOnFaceRequired"));
       return;
     }
 
@@ -210,14 +258,14 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
         try {
           const options = await getMahjongTranslationSuggestions(trimmedPrompt);
           if (!options.length) {
-            setTranslationError(t('aiStudioTranslationNoResult'));
+            setTranslationError(t("aiStudioTranslationNoResult"));
           } else {
             setTranslationOptions(options);
             setSelectedTranslation(options[0]);
           }
         } catch (err) {
           console.error(err);
-          setTranslationError(t('aiStudioTranslationError'));
+          setTranslationError(t("aiStudioTranslationError"));
         } finally {
           setIsTranslating(false);
         }
@@ -225,7 +273,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
       }
 
       if (!selectedTranslation) {
-        setError(t('aiStudioTranslationSelectInstruction'));
+        setError(t("aiStudioTranslationSelectInstruction"));
         return;
       }
     } else if (!isTryOnMode) {
@@ -249,39 +297,53 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
       if (requiresTranslation && selectedTranslation) {
         return `${selectedTranslation.chinese} (${selectedTranslation.pronunciation}) — ${selectedTranslation.explanation}`;
       }
-      return [
-        'Generate a standalone cheongsam product shot.',
-        'Focus solely on the garment on a neutral mannequin or hanger.',
-        'Exclude hands, artisans, sewing scenes, or background props.',
-        `Design inspiration: ${effectivePrompt}`,
-      ].join('\n');
+      if (isCheongsamCraft) {
+        return [
+          "Generate a standalone cheongsam product shot.",
+          "Focus solely on the garment on a neutral mannequin or hanger.",
+          "Exclude hands, artisans, sewing scenes, or background props.",
+          `Design inspiration: ${effectivePrompt}`,
+        ].join("\n");
+      }
+      // Default prompt for other crafts
+      return effectivePrompt;
     })();
+
+    console.log("=== AI Image Generation Prompt ===");
+    console.log("Craft:", craft.name[language]);
+    console.log("Mode:", isTryOnMode ? "Try-On" : "Concept");
+    console.log("Full Model Prompt:");
+    console.log(modelPrompt);
+    console.log("===================================");
 
     setIsLoading(true);
     setTranslationError(null);
     setGeneratedImage(null);
-    setGeneratedImageFit('contain');
+    setGeneratedImageFit("contain");
     setPatternDraftImage(null);
-    setPatternDraftImageFit('contain');
+    setPatternDraftImageFit("contain");
     setPatternDraftFailed(false);
     setIsPatternDraftLoading(false);
     setLastUsedPrompt(effectivePrompt);
 
     try {
-      const promptContainsDragon = trimmedPrompt.toLowerCase().includes('dragon');
+      const promptContainsDragon = trimmedPrompt
+        .toLowerCase()
+        .includes("dragon");
       const hardcodedImageUrl = (() => {
         if (!isCheongsamCraft || !promptContainsDragon) {
           return null;
         }
         if (isTryOnMode) {
-          return '/images/presets/dragon_tryon.png';
+          return "/images/presets/dragon_tryon.png";
         }
-        return '/images/presets/dragon.jpeg';
+        return "/images/presets/dragon.jpeg";
       })();
 
-      const specialTranslationKey = requiresTranslation && selectedTranslation && !isTryOnMode
-        ? selectedTranslation.chinese
-        : null;
+      const specialTranslationKey =
+        requiresTranslation && selectedTranslation && !isTryOnMode
+          ? selectedTranslation.chinese
+          : null;
       const specialImageUrl = specialTranslationKey
         ? SPECIAL_TRANSLATION_IMAGES[specialTranslationKey]
         : undefined;
@@ -291,17 +353,17 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
       const shouldGeneratePatternDraft = isCheongsamCraft && !isTryOnMode;
 
       let imageUrl: string;
-      let imageFit: 'contain' | 'cover' = 'contain';
+      let imageFit: "contain" | "cover" = "contain";
       let patternImageUrl: string | null = null;
-      let patternImageFit: 'contain' | 'cover' = 'contain';
+      let patternImageFit: "contain" | "cover" = "contain";
 
       if (hardcodedImageUrl) {
         await sleep(SPECIAL_IMAGE_DELAY_MS);
         imageUrl = hardcodedImageUrl;
         if (shouldGeneratePatternDraft && promptContainsDragon) {
           await sleep(SPECIAL_IMAGE_DELAY_MS);
-          patternImageUrl = '/images/presets/dragon_draft.png';
-          patternImageFit = 'contain';
+          patternImageUrl = "/images/presets/dragon_draft.png";
+          patternImageFit = "contain";
         }
       } else if (specialImageUrl) {
         await sleep(SPECIAL_IMAGE_DELAY_MS);
@@ -316,7 +378,11 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
       setGeneratedImage(imageUrl);
       setGeneratedImageFit(imageFit);
       setShouldShowContactCTA(!isTryOnMode);
-      setRecentlyUsedTranslation(requiresTranslation && selectedTranslation ? { ...selectedTranslation } : null);
+      setRecentlyUsedTranslation(
+        requiresTranslation && selectedTranslation
+          ? { ...selectedTranslation }
+          : null
+      );
       setIsLoading(false);
 
       if (isTryOnMode && selectedFace) {
@@ -327,7 +393,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
           faceId: selectedFace.id,
           faceLabel: selectedFace.label,
           prompt: trimmedPrompt,
-          mode: 'cheongsam',
+          mode: "cheongsam",
         });
       } else {
         addAiCreation({
@@ -353,18 +419,27 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
           try {
             const inspirationSource = [
               trimmedPrompt,
-              requiresTranslation && selectedTranslation ? selectedTranslation.chinese : '',
-              requiresTranslation && selectedTranslation ? selectedTranslation.explanation : '',
-            ].filter(Boolean).join(' / ');
+              requiresTranslation && selectedTranslation
+                ? selectedTranslation.chinese
+                : "",
+              requiresTranslation && selectedTranslation
+                ? selectedTranslation.explanation
+                : "",
+            ]
+              .filter(Boolean)
+              .join(" / ");
             const patternPrompt = [
-              'Create a scanned pattern draft for a bespoke cheongsam.',
-              'Include repeating motif layout boxes, embroidery placement guides, stitch directions, and labeled color swatches.',
+              "Create a scanned pattern draft for a bespoke cheongsam.",
+              "Include repeating motif layout boxes, embroidery placement guides, stitch directions, and labeled color swatches.",
               `Pattern inspiration: ${inspirationSource || craft.name.en}.`,
-              'Render the draft as a flat scanned sheet with light paper texture, clear inked annotations, and no extra objects.',
-            ].join('\n');
-            const generatedPattern = await generateCraftImage(`${craft.name[language]} pattern draft`, patternPrompt);
+              "Render the draft as a flat scanned sheet with light paper texture, clear inked annotations, and no extra objects.",
+            ].join("\n");
+            const generatedPattern = await generateCraftImage(
+              `${craft.name[language]} pattern draft`,
+              patternPrompt
+            );
             setPatternDraftImage(generatedPattern);
-            setPatternDraftImageFit('contain');
+            setPatternDraftImageFit("contain");
             setPatternDraftFailed(false);
           } catch (patternError) {
             console.error(patternError);
@@ -376,7 +451,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
       }
     } catch (err) {
       console.error(err);
-      setError(err instanceof Error ? err.message : t('aiStudioErrorGeneric'));
+      setError(err instanceof Error ? err.message : t("aiStudioErrorGeneric"));
     } finally {
       setIsLoading(false);
     }
@@ -397,80 +472,98 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
   ]);
 
   const handleOpenContact = useCallback(() => {
-    setContactName('');
-    setContactEmail('');
+    setContactName("");
+    setContactEmail("");
     let messageTemplate = recentlyUsedTranslation
-      ? t('aiStudioContactMessageTemplateTranslated', {
+      ? t("aiStudioContactMessageTemplateTranslated", {
           artisan: craft.artisan[language],
           translation: recentlyUsedTranslation.chinese,
           original: lastOriginalPrompt || prompt,
         })
-      : t('aiStudioContactMessageTemplate', {
+      : t("aiStudioContactMessageTemplate", {
           artisan: craft.artisan[language],
           prompt: lastUsedPrompt || prompt,
         });
     if (patternDraftImage) {
-      messageTemplate = `${messageTemplate}\n\n${t('aiStudioContactPatternDraftNote')}`;
+      messageTemplate = `${messageTemplate}\n\n${t(
+        "aiStudioContactPatternDraftNote"
+      )}`;
     }
     setContactMessage(messageTemplate);
     setContactSuccess(false);
     setIsSubmittingContact(false);
     setIsContactOpen(true);
-  }, [craft, language, lastUsedPrompt, prompt, recentlyUsedTranslation, lastOriginalPrompt, patternDraftImage, t]);
+  }, [
+    craft,
+    language,
+    lastUsedPrompt,
+    prompt,
+    recentlyUsedTranslation,
+    lastOriginalPrompt,
+    patternDraftImage,
+    t,
+  ]);
 
   const handleCloseContact = useCallback(() => {
     setIsContactOpen(false);
   }, []);
 
-  const handleSubmitContact = useCallback((event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (isSubmittingContact || contactSuccess) {
-      return;
-    }
-    setIsSubmittingContact(true);
-    setTimeout(() => {
-      setIsSubmittingContact(false);
-      setContactSuccess(true);
-    }, 600);
-  }, [contactSuccess, isSubmittingContact]);
+  const handleSubmitContact = useCallback(
+    (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      if (isSubmittingContact || contactSuccess) {
+        return;
+      }
+      setIsSubmittingContact(true);
+      setTimeout(() => {
+        setIsSubmittingContact(false);
+        setContactSuccess(true);
+      }, 600);
+    },
+    [contactSuccess, isSubmittingContact]
+  );
 
-  const disableGenerate = isLoading
-    || isTranslating
-    || (!isTryOnMode && !prompt.trim())
-    || (isTryOnMode && !selectedFace);
+  const disableGenerate =
+    isLoading ||
+    isTranslating ||
+    (!isTryOnMode && !prompt.trim()) ||
+    (isTryOnMode && !selectedFace);
   const generateButtonLabel = isLoading
-    ? t('aiStudioGenerating')
+    ? t("aiStudioGenerating")
     : isTryOnMode
-      ? t('aiStudioTryOnGenerate')
-      : requiresTranslation && translationOptions.length
-        ? t('aiStudioGenerateWithTranslation', { translation: selectedTranslation?.chinese ?? t('aiStudioTranslationLabelFallback') })
-        : t('aiStudioGenerate');
+    ? t("aiStudioTryOnGenerate")
+    : requiresTranslation && translationOptions.length
+    ? t("aiStudioGenerateWithTranslation", {
+        translation:
+          selectedTranslation?.chinese ?? t("aiStudioTranslationLabelFallback"),
+      })
+    : t("aiStudioGenerate");
 
   return (
-    <motion.div 
+    <motion.div
       className="h-full w-full bg-[var(--color-bg)] flex flex-col overflow-y-auto"
       initial={{ y: "100%", opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: "100%", opacity: 0 }}
-      transition={{ 
-        type: "spring", 
-        stiffness: 300, 
+      transition={{
+        type: "spring",
+        stiffness: 300,
         damping: 30,
-        duration: 0.4 
+        duration: 0.4,
       }}
     >
       {/* Museum-style Header */}
       <header className="flex items-center justify-between p-6 flex-shrink-0 border-b border-[var(--color-border)] bg-gradient-to-b from-[var(--color-bg)] to-transparent">
         <div className="text-left">
-          <motion.h1 
+          <motion.h1
             className="text-3xl font-bold text-[var(--color-text-primary)]"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.1 }}
           >
-            {t('aiStudioTitle')}
+            {t("aiStudioTitle")}
           </motion.h1>
-          <motion.p 
+          <motion.p
             className="text-sm text-[var(--color-text-secondary)] mt-1"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -479,8 +572,8 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
             Create with {craft.name[language]}
           </motion.p>
         </div>
-        <motion.button 
-          onClick={onClose} 
+        <motion.button
+          onClick={onClose}
           className="bg-[var(--color-surface)] p-3 rounded-full text-[var(--color-text-primary)] border border-[var(--color-border)] hover:bg-[var(--color-secondary-accent)] transition-all duration-200"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -488,8 +581,19 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
           animate={{ scale: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </motion.button>
       </header>
@@ -500,23 +604,37 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
           <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-4 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-xs uppercase tracking-wide text-[var(--color-text-secondary)]">{t('aiStudioModeLabel')}</p>
-                <p className="text-sm text-[var(--color-text-secondary)]">{isTryOnMode ? t('aiStudioTryOnIntro') : t('aiStudioConceptModeHint')}</p>
+                <p className="text-xs uppercase tracking-wide text-[var(--color-text-secondary)]">
+                  {t("aiStudioModeLabel")}
+                </p>
+                <p className="text-sm text-[var(--color-text-secondary)]">
+                  {isTryOnMode
+                    ? t("aiStudioTryOnIntro")
+                    : t("aiStudioConceptModeHint")}
+                </p>
               </div>
               <div className="inline-flex bg-[var(--color-secondary-accent)]/80 border border-[var(--color-border)] rounded-full p-1">
                 <button
                   type="button"
-                  onClick={() => setStudioMode('concept')}
-                  className={`px-4 py-1 text-sm font-medium rounded-full transition-colors ${studioMode === 'concept' ? 'bg-[var(--color-primary-accent)] text-white' : 'text-[var(--color-text-secondary)]'}`}
+                  onClick={() => setStudioMode("concept")}
+                  className={`px-4 py-1 text-sm font-medium rounded-full transition-colors ${
+                    studioMode === "concept"
+                      ? "bg-[var(--color-primary-accent)] text-white"
+                      : "text-[var(--color-text-secondary)]"
+                  }`}
                 >
-                  {t('aiStudioModeConcept')}
+                  {t("aiStudioModeConcept")}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setStudioMode('try-on')}
-                  className={`px-4 py-1 text-sm font-medium rounded-full transition-colors ${studioMode === 'try-on' ? 'bg-[var(--color-primary-accent)] text-white' : 'text-[var(--color-text-secondary)]'}`}
+                  onClick={() => setStudioMode("try-on")}
+                  className={`px-4 py-1 text-sm font-medium rounded-full transition-colors ${
+                    studioMode === "try-on"
+                      ? "bg-[var(--color-primary-accent)] text-white"
+                      : "text-[var(--color-text-secondary)]"
+                  }`}
                 >
-                  {t('aiStudioModeTryOn')}
+                  {t("aiStudioModeTryOn")}
                 </button>
               </div>
             </div>
@@ -530,9 +648,13 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
                     className="px-4 py-2 rounded-full border border-dashed border-[var(--color-primary-accent)] text-[var(--color-primary-accent)] text-sm font-medium hover:bg-[var(--color-primary-accent)]/10 transition-colors disabled:opacity-50"
                     disabled={isFaceUploading}
                   >
-                    {isFaceUploading ? t('aiStudioFaceUploading') : t('aiStudioFaceUpload')}
+                    {isFaceUploading
+                      ? t("aiStudioFaceUploading")
+                      : t("aiStudioFaceUpload")}
                   </button>
-                  <p className="text-xs text-[var(--color-text-secondary)]">{t('aiStudioBananaModelHint')}</p>
+                  <p className="text-xs text-[var(--color-text-secondary)]">
+                    {t("aiStudioBananaModelHint")}
+                  </p>
                 </div>
 
                 <input
@@ -544,30 +666,46 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
                 />
 
                 {faceUploadError && (
-                  <p className="text-xs text-[var(--color-error)]">{faceUploadError}</p>
+                  <p className="text-xs text-[var(--color-error)]">
+                    {faceUploadError}
+                  </p>
                 )}
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {faceProfiles.map(face => {
+                  {faceProfiles.map((face) => {
                     const isActive = face.id === selectedFaceId;
                     return (
                       <button
                         key={face.id}
                         type="button"
                         onClick={() => handleFaceSelect(face.id)}
-                        className={`group border rounded-xl overflow-hidden text-left transition-transform duration-200 ${isActive ? 'border-[var(--color-primary-accent)] scale-[1.02]' : 'border-[var(--color-border)] hover:border-[var(--color-primary-accent)]/60'}`}
+                        className={`group border rounded-xl overflow-hidden text-left transition-transform duration-200 ${
+                          isActive
+                            ? "border-[var(--color-primary-accent)] scale-[1.02]"
+                            : "border-[var(--color-border)] hover:border-[var(--color-primary-accent)]/60"
+                        }`}
                       >
                         <div className="relative">
-                          <img src={face.imageUrl} alt={face.label} className="h-28 w-full object-cover" />
+                          <img
+                            src={face.imageUrl}
+                            alt={face.label}
+                            className="h-28 w-full object-cover"
+                          />
                           {isActive && (
                             <span className="absolute top-2 right-2 bg-[var(--color-primary-accent)] text-white text-xs px-2 py-0.5 rounded-full">
-                              {t('aiStudioFaceSelectedTag')}
+                              {t("aiStudioFaceSelectedTag")}
                             </span>
                           )}
                         </div>
                         <div className="px-3 py-2">
-                          <p className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{face.label}</p>
-                          <p className="text-xs text-[var(--color-text-secondary)]">{face.source === 'preset' ? t('aiStudioFacePresetLabel') : t('aiStudioFaceUploadedLabel')}</p>
+                          <p className="text-sm font-semibold text-[var(--color-text-primary)] truncate">
+                            {face.label}
+                          </p>
+                          <p className="text-xs text-[var(--color-text-secondary)]">
+                            {face.source === "preset"
+                              ? t("aiStudioFacePresetLabel")
+                              : t("aiStudioFaceUploadedLabel")}
+                          </p>
                         </div>
                       </button>
                     );
@@ -576,10 +714,20 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
 
                 {selectedFace && (
                   <div className="flex items-center gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-secondary-accent)]/40 p-3">
-                    <img src={selectedFace.imageUrl} alt={selectedFace.label} className="w-14 h-14 rounded-full object-cover border border-[var(--color-border)]" />
+                    <img
+                      src={selectedFace.imageUrl}
+                      alt={selectedFace.label}
+                      className="w-14 h-14 rounded-full object-cover border border-[var(--color-border)]"
+                    />
                     <div>
-                      <p className="text-sm font-semibold text-[var(--color-text-primary)]">{t('aiStudioFaceActiveLabel', { label: selectedFace.label })}</p>
-                      <p className="text-xs text-[var(--color-text-secondary)]">{t('aiStudioFaceActiveHelper')}</p>
+                      <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                        {t("aiStudioFaceActiveLabel", {
+                          label: selectedFace.label,
+                        })}
+                      </p>
+                      <p className="text-xs text-[var(--color-text-secondary)]">
+                        {t("aiStudioFaceActiveHelper")}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -589,14 +737,19 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
         )}
 
         {/* Museum-style Canvas Area */}
-        <motion.div 
+        <motion.div
           className="w-full h-[65vh] bg-[var(--color-surface)] rounded-2xl flex items-center justify-center border border-[var(--color-border)] relative overflow-hidden"
           style={{
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
           }}
           initial={{ scale: 0.9, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, type: "spring", stiffness: 300, damping: 30 }}
+          transition={{
+            delay: 0.4,
+            type: "spring",
+            stiffness: 300,
+            damping: 30,
+          }}
         >
           {isLoading && (
             <motion.div
@@ -608,7 +761,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
               <motion.div
                 className="relative w-16 h-16"
                 animate={{ rotate: 360 }}
-                transition={{ repeat: Infinity, duration: 1.2, ease: 'linear' }}
+                transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
               >
                 <span className="absolute inset-0 rounded-full border-4 border-[var(--color-primary-accent)]/30" />
                 <span className="absolute inset-1 rounded-full border-4 border-transparent border-t-[var(--color-primary-accent)]" />
@@ -620,20 +773,20 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
                   animate={{ opacity: [0.4, 1, 0.4] }}
                   transition={{ duration: 2.8, repeat: Infinity }}
                 >
-                  {t('aiStudioLoading')}
+                  {t("aiStudioLoading")}
                 </motion.p>
                 <motion.p
                   className="text-sm text-[var(--color-text-secondary)]"
                   animate={{ opacity: [0.3, 1, 0.3] }}
                   transition={{ duration: 3.1, repeat: Infinity, delay: 0.5 }}
                 >
-                  {t('aiStudioGenerating')}
+                  {t("aiStudioGenerating")}
                 </motion.p>
               </div>
             </motion.div>
           )}
           {error && (
-            <motion.div 
+            <motion.div
               className="text-center p-8"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -642,170 +795,243 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
             </motion.div>
           )}
           {generatedImage && (
-            <motion.img 
-              src={generatedImage} 
-              alt="AI generated craft" 
-              className={`w-full h-full ${generatedImageFit === 'cover' ? 'object-cover' : 'object-contain'} rounded-2xl`}
+            <motion.img
+              src={generatedImage}
+              alt="AI generated craft"
+              className={`w-full h-full ${
+                generatedImageFit === "cover"
+                  ? "object-cover"
+                  : "object-contain"
+              } rounded-2xl`}
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             />
           )}
           {!isLoading && !generatedImage && !error && (
-            <motion.div 
+            <motion.div
               className="text-center text-[var(--color-text-secondary)] p-12"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
             >
               <div className="w-20 h-20 bg-[var(--color-secondary-accent)] rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-[var(--color-text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-10 w-10"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  style={{ stroke: "var(--color-text-inactive)" }}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1}
+                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                  />
                 </svg>
               </div>
-              <p className="text-lg font-medium">Your creation will appear here</p>
-              <p className="text-sm mt-2 opacity-70">Enter your inspiration below</p>
+              <p className="text-lg font-medium">{t("aiStudioPlaceholder")}</p>
+              <p className="text-sm mt-2 opacity-70">
+                {t("aiStudioPlaceholderSubtitle")}
+              </p>
             </motion.div>
           )}
         </motion.div>
 
-        {isCheongsamCraft && !isTryOnMode && (isPatternDraftLoading || patternDraftImage || patternDraftFailed) && (
-          <motion.div
-            className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-5 space-y-4"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15, type: 'spring', stiffness: 280, damping: 28 }}
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-[var(--color-text-primary)]">{t('aiStudioPatternDraftTitle')}</p>
-                <p className="text-xs text-[var(--color-text-secondary)] mt-1">{t('aiStudioPatternDraftSubtitle')}</p>
-              </div>
-              <span className="text-[10px] uppercase tracking-wide text-[var(--color-text-secondary)]">
-                {t('aiStudioPatternDraftBadge')}
-              </span>
-            </div>
-            {isPatternDraftLoading && (
-              <div className="flex flex-col items-center justify-center gap-3 py-10 text-[var(--color-text-secondary)]">
-                <motion.div
-                  className="relative w-12 h-12"
-                  animate={{ rotate: 360 }}
-                  transition={{ repeat: Infinity, duration: 1.4, ease: 'linear' }}
-                >
-                  <span className="absolute inset-0 rounded-full border-4 border-[var(--color-primary-accent)]/25" />
-                  <span className="absolute inset-1 rounded-full border-4 border-transparent border-t-[var(--color-primary-accent)]" />
-                </motion.div>
-                <p className="text-sm font-medium">{t('aiStudioPatternDraftLoading')}</p>
-              </div>
-            )}
-            {!isPatternDraftLoading && patternDraftImage && (
-              <motion.img
-                src={patternDraftImage}
-                alt={t('aiStudioPatternDraftAlt')}
-                className={`w-full ${patternDraftImageFit === 'cover' ? 'object-cover' : 'object-contain'} rounded-xl border border-[var(--color-border)]`}
-                style={{ maxHeight: '70vh' }}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.35 }}
-              />
-            )}
-            {!isPatternDraftLoading && !patternDraftImage && patternDraftFailed && (
-              <p className="text-xs text-[var(--color-error)]">{t('aiStudioPatternDraftError')}</p>
-            )}
-          </motion.div>
-        )}
-
-        {requiresTranslation && (isTranslating || translationOptions.length > 0 || translationError) && (
-          <div className="bg-[var(--color-surface)] p-4 rounded-xl mt-4 border border-[var(--color-border)] space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="text-[16px] font-semibold text-[var(--color-text-primary)]">{t('aiStudioTranslationTitle')}</h3>
-                <p className="text-[13px] text-[var(--color-text-secondary)]">{t('aiStudioTranslationSubtitle')}</p>
-                {(lastOriginalPrompt || prompt) && (
-                  <p className="mt-2 text-[12px] text-[var(--color-text-secondary)]">
-                    {t('aiStudioTranslationOriginalLabel', { original: lastOriginalPrompt || prompt })}
+        {isCheongsamCraft &&
+          !isTryOnMode &&
+          (isPatternDraftLoading ||
+            patternDraftImage ||
+            patternDraftFailed) && (
+            <motion.div
+              className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-5 space-y-4"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                delay: 0.15,
+                type: "spring",
+                stiffness: 280,
+                damping: 28,
+              }}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                    {t("aiStudioPatternDraftTitle")}
                   </p>
-                )}
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+                    {t("aiStudioPatternDraftSubtitle")}
+                  </p>
+                </div>
+                <span className="text-[10px] uppercase tracking-wide text-[var(--color-text-secondary)]">
+                  {t("aiStudioPatternDraftBadge")}
+                </span>
               </div>
-              {isTranslating && (
-                <div className="flex flex-col items-center justify-center gap-2 text-[12px] text-[var(--color-primary-accent)] ml-auto self-center w-48 max-w-[60%]">
-                  <span className="w-full">{t('aiStudioTranslationLoading')}</span>
-                  <motion.span
-                    className="relative block h-2 w-full overflow-hidden rounded-full bg-[var(--color-primary-accent)]/15"
-                    initial={false}
+              {isPatternDraftLoading && (
+                <div className="flex flex-col items-center justify-center gap-3 py-10 text-[var(--color-text-secondary)]">
+                  <motion.div
+                    className="relative w-12 h-12"
+                    animate={{ rotate: 360 }}
+                    transition={{
+                      repeat: Infinity,
+                      duration: 1.4,
+                      ease: "linear",
+                    }}
                   >
-                    <motion.span
-                      className="absolute inset-y-0 w-1/3 rounded-full bg-[var(--color-primary-accent)]"
-                      animate={{ x: ['-40%', '120%'] }}
-                      transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut' }}
-                    />
-                  </motion.span>
+                    <span className="absolute inset-0 rounded-full border-4 border-[var(--color-primary-accent)]/25" />
+                    <span className="absolute inset-1 rounded-full border-4 border-transparent border-t-[var(--color-primary-accent)]" />
+                  </motion.div>
+                  <p className="text-sm font-medium">
+                    {t("aiStudioPatternDraftLoading")}
+                  </p>
                 </div>
               )}
-            </div>
+              {!isPatternDraftLoading && patternDraftImage && (
+                <motion.img
+                  src={patternDraftImage}
+                  alt={t("aiStudioPatternDraftAlt")}
+                  className={`w-full ${
+                    patternDraftImageFit === "cover"
+                      ? "object-cover"
+                      : "object-contain"
+                  } rounded-xl border border-[var(--color-border)]`}
+                  style={{ maxHeight: "70vh" }}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35 }}
+                />
+              )}
+              {!isPatternDraftLoading &&
+                !patternDraftImage &&
+                patternDraftFailed && (
+                  <p className="text-xs text-[var(--color-error)]">
+                    {t("aiStudioPatternDraftError")}
+                  </p>
+                )}
+            </motion.div>
+          )}
 
-            {translationOptions.length > 0 && (
-              <div className="space-y-3">
-                {translationOptions.map((option) => {
-                  const isActive = selectedTranslation?.id === option.id;
-                  const strategyLabel = translationStrategyLabels[option.strategy] || translationStrategyLabels.mixed;
-                  return (
-                    <button
-                      key={option.id}
-                      type="button"
-                      onClick={() => handleSelectTranslation(option)}
-                      className={`w-full text-left rounded-xl border px-4 py-3 transition-colors ${
-                        isActive
-                          ? 'border-[var(--color-primary-accent)] bg-[var(--color-primary-accent)]/10'
-                          : 'border-[var(--color-border)] bg-[var(--color-bg)] hover:border-[var(--color-primary-accent)]/60'
-                      }`}
+        {requiresTranslation &&
+          (isTranslating ||
+            translationOptions.length > 0 ||
+            translationError) && (
+            <div className="bg-[var(--color-surface)] p-4 rounded-xl mt-4 border border-[var(--color-border)] space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-[16px] font-semibold text-[var(--color-text-primary)]">
+                    {t("aiStudioTranslationTitle")}
+                  </h3>
+                  <p className="text-[13px] text-[var(--color-text-secondary)]">
+                    {t("aiStudioTranslationSubtitle")}
+                  </p>
+                  {(lastOriginalPrompt || prompt) && (
+                    <p className="mt-2 text-[12px] text-[var(--color-text-secondary)]">
+                      {t("aiStudioTranslationOriginalLabel", {
+                        original: lastOriginalPrompt || prompt,
+                      })}
+                    </p>
+                  )}
+                </div>
+                {isTranslating && (
+                  <div className="flex flex-col items-center justify-center gap-2 text-[12px] text-[var(--color-primary-accent)] ml-auto self-center w-48 max-w-[60%]">
+                    <span className="w-full">
+                      {t("aiStudioTranslationLoading")}
+                    </span>
+                    <motion.span
+                      className="relative block h-2 w-full overflow-hidden rounded-full bg-[var(--color-primary-accent)]/15"
+                      initial={false}
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[18px] font-semibold text-[var(--color-text-primary)]">{option.chinese}</span>
-                        <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--color-primary-accent)]">
-                          {strategyLabel}
-                        </span>
-                      </div>
-                      {option.pronunciation && (
-                        <p className="text-[12px] text-[var(--color-text-secondary)] mt-1">
-                          {t('aiStudioTranslationOptionPronunciation', { pronunciation: option.pronunciation })}
-                        </p>
-                      )}
-                      <p className="text-[13px] text-[var(--color-text-secondary)] mt-1 leading-snug">
-                        {option.explanation}
-                      </p>
-                    </button>
-                  );
-                })}
-                <p className="text-[11px] text-[var(--color-text-secondary)]">
-                  {t('aiStudioTranslationUsePromptHint')}
-                </p>
+                      <motion.span
+                        className="absolute inset-y-0 w-1/3 rounded-full bg-[var(--color-primary-accent)]"
+                        animate={{ x: ["-40%", "120%"] }}
+                        transition={{
+                          duration: 0.9,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                      />
+                    </motion.span>
+                  </div>
+                )}
               </div>
-            )}
 
-            {translationError && (
-              <p className="text-[13px] text-[var(--color-error)]">{translationError}</p>
-            )}
-          </div>
-        )}
-        
-        {shouldShowContactCTA && generatedImage && (
-             <div className="bg-[var(--color-surface)] p-4 rounded-xl text-center mt-4 border border-[var(--color-border)] ios-shadow">
-                <h3 className="text-[17px] font-semibold text-[var(--color-primary-accent)]">{t('aiStudioCtaTitle')}</h3>
-                <button
-                  onClick={handleOpenContact}
-                  className="mt-2 bg-[var(--color-primary-accent)] text-white font-semibold py-2 px-5 rounded-full text-[15px] hover:opacity-80 transition-colors"
-                >
-                    {t('aiStudioCtaButton')}
-                </button>
+              {translationOptions.length > 0 && (
+                <div className="space-y-3">
+                  {translationOptions.map((option) => {
+                    const isActive = selectedTranslation?.id === option.id;
+                    const strategyLabel =
+                      translationStrategyLabels[option.strategy] ||
+                      translationStrategyLabels.mixed;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => handleSelectTranslation(option)}
+                        className={`w-full text-left rounded-xl border px-4 py-3 transition-colors ${
+                          isActive
+                            ? "border-[var(--color-primary-accent)] bg-[var(--color-primary-accent)]/10"
+                            : "border-[var(--color-border)] bg-[var(--color-bg)] hover:border-[var(--color-primary-accent)]/60"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[18px] font-semibold text-[var(--color-text-primary)]">
+                            {option.chinese}
+                          </span>
+                          <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--color-primary-accent)]">
+                            {strategyLabel}
+                          </span>
+                        </div>
+                        {option.pronunciation && (
+                          <p className="text-[12px] text-[var(--color-text-secondary)] mt-1">
+                            {t("aiStudioTranslationOptionPronunciation", {
+                              pronunciation: option.pronunciation,
+                            })}
+                          </p>
+                        )}
+                        <p className="text-[13px] text-[var(--color-text-secondary)] mt-1 leading-snug">
+                          {option.explanation}
+                        </p>
+                      </button>
+                    );
+                  })}
+                  <p className="text-[11px] text-[var(--color-text-secondary)]">
+                    {t("aiStudioTranslationUsePromptHint")}
+                  </p>
+                </div>
+              )}
+
+              {translationError && (
+                <p className="text-[13px] text-[var(--color-error)]">
+                  {translationError}
+                </p>
+              )}
             </div>
+          )}
+
+        {shouldShowContactCTA && generatedImage && (
+          <div className="bg-[var(--color-surface)] p-4 rounded-xl text-center mt-4 border border-[var(--color-border)] ios-shadow">
+            <h3 className="text-[17px] font-semibold text-[var(--color-primary-accent)]">
+              {t("aiStudioCtaTitle")}
+            </h3>
+            <button
+              onClick={handleOpenContact}
+              className="mt-2 bg-[var(--color-primary-accent)] text-white font-semibold py-2 px-5 rounded-full text-[15px] hover:opacity-80 transition-colors"
+            >
+              {t("aiStudioCtaButton")}
+            </button>
+          </div>
         )}
 
         <div className="mt-4">
           <textarea
             value={prompt}
             onChange={(e) => handlePromptChange(e.target.value)}
-            placeholder={isTryOnMode ? t('aiStudioTryOnPromptPlaceholder') : t('aiStudioInputPlaceholder')}
+            placeholder={
+              isTryOnMode
+                ? t("aiStudioTryOnPromptPlaceholder")
+                : t("aiStudioInputPlaceholder")
+            }
             rows={3}
             className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-accent)] resize-none"
             disabled={isLoading}
@@ -813,7 +1039,8 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
           <button
             onClick={handleGenerate}
             disabled={disableGenerate}
-            className="w-full mt-2 bg-[var(--color-primary-accent)] text-white font-bold py-4 px-6 rounded-full transition-all duration-300 hover:scale-105 disabled:bg-[var(--color-secondary-accent)] disabled:cursor-not-allowed disabled:scale-100">
+            className="w-full mt-2 bg-[var(--color-primary-accent)] text-white font-bold py-4 px-6 rounded-full transition-all duration-300 hover:scale-105 disabled:bg-[var(--color-secondary-accent)] disabled:cursor-not-allowed disabled:scale-100"
+          >
             {generateButtonLabel}
           </button>
         </div>
@@ -825,16 +1052,31 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
             <div className="flex items-start justify-between p-5 border-b border-[var(--color-border)]">
               <div>
                 <h2 className="text-[20px] font-semibold text-[var(--color-text-primary)]">
-                  {t('aiStudioContactTitle', { artisan: craft.artisan[language] })}
+                  {t("aiStudioContactTitle", {
+                    artisan: craft.artisan[language],
+                  })}
                 </h2>
-                <p className="text-[13px] text-[var(--color-text-secondary)] mt-1">{t('aiStudioContactSubtitle')}</p>
+                <p className="text-[13px] text-[var(--color-text-secondary)] mt-1">
+                  {t("aiStudioContactSubtitle")}
+                </p>
               </div>
               <button
                 onClick={handleCloseContact}
                 className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -842,19 +1084,34 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
             {contactSuccess ? (
               <div className="p-6 text-center space-y-4">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary-accent)]/10 text-[var(--color-primary-accent)]">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                 </div>
-                <h3 className="text-[18px] font-semibold text-[var(--color-text-primary)]">{t('aiStudioContactSuccessTitle')}</h3>
+                <h3 className="text-[18px] font-semibold text-[var(--color-text-primary)]">
+                  {t("aiStudioContactSuccessTitle")}
+                </h3>
                 <p className="text-[14px] text-[var(--color-text-secondary)]">
-                  {t('aiStudioContactSuccessDescription', { artisan: craft.artisan[language] })}
+                  {t("aiStudioContactSuccessDescription", {
+                    artisan: craft.artisan[language],
+                  })}
                 </p>
                 <button
                   onClick={handleCloseContact}
                   className="w-full bg-[var(--color-primary-accent)] text-white font-semibold py-3 px-4 rounded-xl hover:opacity-90 transition-colors"
                 >
-                  {t('aiStudioContactClose')}
+                  {t("aiStudioContactClose")}
                 </button>
               </div>
             ) : (
@@ -865,14 +1122,14 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
                       {generatedImage && (
                         <img
                           src={generatedImage}
-                          alt={t('aiStudioContactPromptThumbnailAlt')}
+                          alt={t("aiStudioContactPromptThumbnailAlt")}
                           className="h-16 w-16 rounded-xl object-cover"
                         />
                       )}
                       {patternDraftImage && (
                         <img
                           src={patternDraftImage}
-                          alt={t('aiStudioPatternDraftAlt')}
+                          alt={t("aiStudioPatternDraftAlt")}
                           className="h-16 w-16 rounded-xl object-cover"
                         />
                       )}
@@ -880,7 +1137,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
                   )}
                   <div className="flex-1">
                     <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-secondary)]">
-                      {t('aiStudioContactPromptLabel')}
+                      {t("aiStudioContactPromptLabel")}
                     </p>
                     <p className="text-[14px] text-[var(--color-text-primary)] mt-1 leading-snug">
                       {lastUsedPrompt || prompt}
@@ -890,21 +1147,21 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
 
                 <div className="space-y-2">
                   <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">
-                    {t('aiStudioContactNameLabel')}
+                    {t("aiStudioContactNameLabel")}
                   </label>
                   <input
                     type="text"
                     value={contactName}
                     onChange={(event) => setContactName(event.target.value)}
                     required
-                    placeholder={t('aiStudioContactNamePlaceholder')}
+                    placeholder={t("aiStudioContactNamePlaceholder")}
                     className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] py-3 px-4 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-accent)]"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">
-                    {t('aiStudioContactEmailLabel')}
+                    {t("aiStudioContactEmailLabel")}
                   </label>
                   <input
                     type="email"
@@ -918,14 +1175,14 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
 
                 <div className="space-y-2">
                   <label className="block text-[13px] font-medium text-[var(--color-text-secondary)]">
-                    {t('aiStudioContactMessageLabel')}
+                    {t("aiStudioContactMessageLabel")}
                   </label>
                   <textarea
                     value={contactMessage}
                     onChange={(event) => setContactMessage(event.target.value)}
                     rows={4}
                     required
-                    placeholder={t('aiStudioContactMessagePlaceholder')}
+                    placeholder={t("aiStudioContactMessagePlaceholder")}
                     className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] py-3 px-4 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-accent)] resize-none"
                   />
                 </div>
@@ -935,7 +1192,9 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
                   disabled={isSubmittingContact}
                   className="w-full bg-[var(--color-primary-accent)] text-white font-semibold py-3 px-4 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {isSubmittingContact ? t('aiStudioContactSubmitting') : t('aiStudioContactSubmit')}
+                  {isSubmittingContact
+                    ? t("aiStudioContactSubmitting")
+                    : t("aiStudioContactSubmit")}
                 </button>
               </form>
             )}

@@ -50,6 +50,9 @@ logs
 temp/
 tmp/
 
+# Debug reference images
+public/debug-references/
+
 # Package-lock files (optional - remove if you want to track them)
 package-lock.json
 server/package-lock.json

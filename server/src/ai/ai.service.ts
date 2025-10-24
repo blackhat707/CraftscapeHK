@@ -3,6 +3,7 @@ import { GoogleGenAI } from '@google/genai';
 import { getGeminiApiKey } from '../config/gemini.config';
 import { getDoubaoConfig, isDoubaoConfigured } from '../config/doubao.config';
 import { generateDoubaoImage } from './doubao.client';
+import { generateMahjongTileReference } from '../utils/text-to-image.util';
 
 @Injectable()
 export class AiService {
@@ -20,10 +21,52 @@ export class AiService {
     return /[\u3400-\u9FFF]/.test(value);
   }
 
+  private isMahjongCraft(craftName: string): boolean {
+    const lowerName = craftName.toLowerCase();
+    return lowerName.includes('mahjong') || lowerName.includes('麻雀') || lowerName.includes('麻將');
+  }
+
   async generateCraftImage(craftName: string, userPrompt: string): Promise<{ imageUrl: string }> {
     const aiClient = this.ai;
     try {
-      const fullPrompt = `A high-quality, artistic image of a modern interpretation of a traditional Hong Kong craft: ${craftName}. The design is inspired by: "${userPrompt}". Focus on intricate details and beautiful lighting.`;
+      // Check if this is a mahjong craft and if the prompt contains Chinese characters
+      const isMahjong = this.isMahjongCraft(craftName);
+      const hasChinesePrompt = this.containsChineseCharacters(userPrompt);
+      
+      let referenceImage: string | null = null;
+      let enhancedPrompt = userPrompt;
+
+      // Generate reference image for mahjong with Chinese characters
+      if (isMahjong && hasChinesePrompt) {
+        // Extract only Chinese characters from the prompt (in case it includes pronunciation/explanation)
+        const chineseOnly = userPrompt.match(/[\u3400-\u9FFF]+/g)?.[0] || userPrompt;
+        console.log('Generating mahjong tile reference image with Chinese text:', chineseOnly);
+        referenceImage = generateMahjongTileReference(chineseOnly);
+        
+        // DEBUG: Log reference image details
+        console.log('Reference image generated:');
+        console.log('- Format: PNG (base64 encoded)');
+        console.log('- Size:', Math.round(referenceImage.length / 1024), 'KB');
+        console.log('- Data URL length:', referenceImage.length, 'characters');
+        
+        // Enhance the prompt to use the reference image
+        enhancedPrompt = `A hand-carved traditional Hong Kong mahjong tile with Chinese character(s) "${userPrompt}" engraved vertically on it. The tile should be made of ivory-colored material (bone or bamboo), with deep, precise carving showing traditional craftsmanship. Follow the exact text shape and character layout shown in the reference image. The character should be centered and prominent, carved in a traditional style. Focus on intricate carving details, elegant typography, and beautiful lighting that highlights the depth of the engraving.`;
+        console.log('Enhanced mahjong prompt:', enhancedPrompt);
+      }
+
+      const fullPrompt = isMahjong && hasChinesePrompt 
+        ? enhancedPrompt
+        : `A high-quality, artistic image of a modern interpretation of a traditional Hong Kong craft: ${craftName}. The design is inspired by: "${userPrompt}". Focus on intricate details and beautiful lighting.`;
+
+      console.log('=== Backend AI Service - Full Prompt ===');
+      console.log('Craft Name:', craftName);
+      console.log('User Prompt:', userPrompt);
+      console.log('Is Mahjong:', isMahjong);
+      console.log('Has Chinese:', hasChinesePrompt);
+      console.log('Has Reference Image:', !!referenceImage);
+      console.log('Full Prompt Sent to AI:');
+      console.log(fullPrompt);
+      console.log('========================================');
 
       const hasChineseInput =
         this.containsChineseCharacters(userPrompt) || this.containsChineseCharacters(craftName);
@@ -45,22 +88,36 @@ export class AiService {
         throw new Error('The AI service is not configured on the server.');
       }
 
-      const response = await aiClient.models.generateImages({
-        model: 'imagen-4.0-generate-001',
-        prompt: fullPrompt,
-        config: {
-          numberOfImages: 1,
-          outputMimeType: 'image/jpeg',
-          aspectRatio: '3:4',
-        },
+      // Build the prompt array for generateContent API
+      const promptParts: any[] = [{ text: fullPrompt }];
+      
+      // Add reference image if available (for mahjong)
+      if (isMahjong && referenceImage) {
+        const base64Data = referenceImage.split(',')[1]; // Extract base64 data
+        promptParts.push({
+          inlineData: {
+            mimeType: 'image/png',
+            data: base64Data,
+          },
+        });
+      }
+
+      const response = await aiClient.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: promptParts,
       });
 
-      if (response.generatedImages && response.generatedImages.length > 0) {
-        const base64ImageBytes = response.generatedImages[0].image.imageBytes;
-        return { imageUrl: `data:image/jpeg;base64,${base64ImageBytes}` };
-      } else {
-        throw new Error('AI failed to generate an image. Please try again later.');
+      // Extract the generated image from the response
+      if (response.candidates && response.candidates.length > 0) {
+        for (const part of response.candidates[0].content.parts) {
+          if (part.inlineData) {
+            const base64ImageBytes = part.inlineData.data;
+            return { imageUrl: `data:image/jpeg;base64,${base64ImageBytes}` };
+          }
+        }
       }
+      
+      throw new Error('AI failed to generate an image. Please try again later.');
     } catch (error) {
       console.error('Error generating image with AI provider:', error);
       if (error instanceof Error) {

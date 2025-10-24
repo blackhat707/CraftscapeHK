@@ -78,7 +78,7 @@ Craftscape HK is an **AI + AR e-commerce platform** where users can:
    ```
    Both the Vite app and the NestJS API will consume it.
 
-   You may also put add this line to the `.env` file to override the model used in image generation (default: `imagen-4.0-generate-001`).
+   You may also put add this line to the `.env` file to override the model used in image generation (default: `gemini-2.5-flash-latest`).
    ```bash
    GOOGLE_AI_IMAGE_MODEL="<replace_this_with_your_preferred_model_id>"
    ```
@@ -112,7 +112,7 @@ Craftscape HK is an **AI + AR e-commerce platform** where users can:
 Place the variable in your shell or a .env loaded by your process manager before starting the server.
 
 #### Images API (Imagen 4) access
-The endpoint api/ai/generate-image uses the Google GenAI SDK with model imagen-4.0-generate-001.
+The endpoint api/ai/generate-image uses the Google GenAI SDK with model gemini-2.5-flash-latest.
 Google’s Images API is not available on free keys. If you see: "Imagen API is only accessible to billed users at this time."
 
 Do this:

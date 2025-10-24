@@ -1,15 +1,33 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Serve static files from public directory
+  app.useStaticAssets(join(__dirname, '..', '..', 'public'), {
+    prefix: '/',
+  });
+
+  // Serve static files from assets directory
+  app.useStaticAssets(join(__dirname, '..', '..', 'assets'), {
+    prefix: '/assets',
+  });
+
+  // Serve debug-mahjong-references.html at root for convenience
+  app.useStaticAssets(join(__dirname, '..', '..', 'assets', 'mahjong'), {
+    prefix: '/',
+  });
 
   // Enable CORS for frontend communication
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3001', 'null'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
   });
 
   // Enable validation pipes
