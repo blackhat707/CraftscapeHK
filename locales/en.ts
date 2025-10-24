@@ -25,6 +25,8 @@ export const en = {
     marketplaceTitle: 'Marketplace',
     marketplaceDesc: 'Find and purchase your favorite crafts',
     marketplaceSearchPlaceholder: 'Search for crafts or artisans...',
+    marketplaceNoProducts: 'No products found',
+    marketplaceNoProductsHint: 'Try adjusting your search',
 
     // Events Page
     eventsTitle: 'Events',

@@ -31,11 +31,14 @@ const CraftDetail: React.FC<CraftDetailProps> = ({ craft, onClose, onStartCreati
       {/* Museum-style Hero Section */}
       <header className="relative h-96 flex-shrink-0">
         <img 
-          src={craft.images[1]} 
+          src={craft.images[0]} 
           alt={craft.name[language]} 
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-bg)] via-black/20 to-transparent"></div>
+        {/* Semi-transparent black overlay for better text readability */}
+        <div className="absolute inset-0 bg-black/30"></div>
+        {/* Gradient overlay for smooth transition to page background */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-bg)] from-0% via-black/10 via-25% to-transparent to-40%"></div>
         
         {/* Close Button */}
         <motion.button 
@@ -76,7 +79,6 @@ const CraftDetail: React.FC<CraftDetailProps> = ({ craft, onClose, onStartCreati
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            Hong Kong Craftsmanship
           </motion.p>
         </div>
       </header>

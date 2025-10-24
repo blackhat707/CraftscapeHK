@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import type { Craft } from '../types';
 import Spinner from '../components/Spinner';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 type ProfileTab = 'favorites' | 'creations' | 'wardrobe';
 
@@ -33,6 +34,7 @@ interface ProfileProps {
 const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
     const { favorites, aiCreations, faceProfiles, setActiveFace, activeFaceId, addFaceProfile, tryOnLooks } = useAppContext();
     const { language, setLanguage, t } = useLanguage();
+    const { theme } = useTheme();
     const [activeTab, setActiveTab] = useState<ProfileTab>('favorites');
     const [allCrafts, setAllCrafts] = useState<Craft[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -77,9 +79,9 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
                 setIsFaceUploading(false);
                 return;
             }
-            const label = file.name.replace(/\.[^/.]+$/, '') || t('profileWardrobeUploadFallback');
+            const labelText = file.name.replace(/\.[^/.]+$/, '') || t('profileWardrobeUploadFallback');
             addFaceProfile({
-                label,
+                label: { zh: labelText, en: labelText },
                 imageUrl,
                 source: 'upload',
             });
@@ -106,7 +108,7 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
                     <div className="flex items-center space-x-4">
                         <div className="relative">
                             <img 
-                                src="https://picsum.photos/seed/user/200/200" 
+                                src="../public/user-avatar.jpg"
                                 alt="User Avatar" 
                                 className="w-16 h-16 rounded-full border-2 border-[var(--color-primary-accent)] object-cover"
                             />
@@ -135,7 +137,8 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
                 {/* Artisan Mode Toggle */}
                 <motion.button
                     onClick={onToggleArtisanMode}
-                    className="w-full museum-card p-4 text-center font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-[var(--color-primary-accent)]/10 text-[var(--color-primary-accent)]"
+                    className="w-full museum-card p-4 text-center font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-[var(--color-primary-accent)]/10"
+                    style={{ color: theme === 'dark' ? 'var(--color-text-secondary)' : 'var(--color-primary-accent)' }}
                     whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.98 }}
                 >
@@ -151,10 +154,11 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
                 {/* Language Setting */}
                 <div>
                     <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3 uppercase tracking-wide">{t('profileLanguageSetting')}</h2>
-                    <div className="relative flex bg-[var(--color-secondary-accent)] p-1 rounded-xl">
+                    <div className="relative flex bg-[var(--color-button-bg)] p-1 rounded-xl">
                         <button
                             onClick={() => setLanguage('zh')}
-                            className={`relative w-full py-3 rounded-lg text-sm font-semibold transition-colors duration-300 z-10 ${language === 'zh' ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)]'}`}
+                            className={`relative w-full py-3 rounded-lg text-sm font-semibold transition-colors duration-300 z-10 ${language === 'zh' ? '' : 'text-[var(--color-text-inactive)]'}`}
+                            style={language === 'zh' ? { color: theme === 'dark' ? 'var(--color-text-secondary)' : 'var(--color-text-red)' } : undefined}
                         >
                             {language === 'zh' && (
                                 <motion.div
@@ -168,7 +172,8 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
                         </button>
                         <button
                             onClick={() => setLanguage('en')}
-                            className={`relative w-full py-3 rounded-lg text-sm font-semibold transition-colors duration-300 z-10 ${language === 'en' ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)]'}`}
+                            className={`relative w-full py-3 rounded-lg text-sm font-semibold transition-colors duration-300 z-10 ${language === 'en' ? '' : 'text-[var(--color-text-inactive)]'}`}
+                            style={language === 'en' ? { color: theme === 'dark' ? 'var(--color-text-secondary)' : 'var(--color-text-red)' } : undefined}
                         >
                             {language === 'en' && (
                                 <motion.div
@@ -185,12 +190,13 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
 
                 {/* Content Tabs */}
                 <div>
-                    <div className="relative flex bg-[var(--color-secondary-accent)] p-1 rounded-xl">
+                    <div className="relative flex bg-[var(--color-button-bg)] p-1 rounded-xl">
                         {tabs.map(tab => (
                             <button 
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id as ProfileTab)}
-                                className={`relative w-full py-3 rounded-lg text-sm font-semibold transition-colors duration-300 z-10 ${activeTab === tab.id ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)]'}`}
+                                className={`relative w-full py-3 rounded-lg text-sm font-semibold transition-colors duration-300 z-10 ${activeTab === tab.id ? '' : 'text-[var(--color-text-inactive)]'}`}
+                                style={activeTab === tab.id ? { color: theme === 'dark' ? 'var(--color-text-secondary)' : 'var(--color-text-red)' } : undefined}
                             >
                                 {activeTab === tab.id && (
                                     <motion.div 
@@ -304,10 +310,10 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
                                                 isActive ? 'border-[var(--color-primary-accent)] shadow-lg shadow-[var(--color-primary-accent)]/20 scale-[1.01]' : 'border-[var(--color-border)] hover:border-[var(--color-primary-accent)]/60'
                                             }`}
                                         >
-                                            <img src={face.imageUrl} alt={face.label} className="w-full h-32 object-cover" />
+                                            <img src={face.imageUrl} alt={typeof face.label === 'string' ? face.label : face.label[language]} className="w-full h-32 object-cover" />
                                             <div className="px-3 py-2 space-y-1">
                                                 <div className="flex items-center justify-between">
-                                                    <p className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{face.label}</p>
+                                                    <p className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{typeof face.label === 'string' ? face.label : face.label[language]}</p>
                                                     <span className="text-[10px] uppercase tracking-wide text-[var(--color-text-secondary)]">
                                                         {face.source === 'preset' ? t('profileWardrobeFacePreset') : t('profileWardrobeFaceUploaded')}
                                                     </span>

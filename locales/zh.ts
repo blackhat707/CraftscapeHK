@@ -24,6 +24,8 @@ export const zh = {
     marketplaceTitle: '市集',
     marketplaceDesc: '尋找和購買心儀的工藝品',
     marketplaceSearchPlaceholder: '搜尋工藝品或師傅...',
+    marketplaceNoProducts: '找不到商品',
+    marketplaceNoProductsHint: '試試調整搜尋條件',
 
     // Events Page
     eventsTitle: '活動',
@@ -130,7 +132,7 @@ export const zh = {
     aiStudioConceptModeHint: '描述你的靈感，我們會先畫出概念圖。',
     aiStudioFaceUpload: '上載臉孔參考',
     aiStudioFaceUploading: '上載中...',
-    aiStudioBananaModelHint: '採用 Banana 模型產生寫實試穿效果。',
+    aiStudioBananaModelHint: '採用 Nano Banana 模型產生寫實試穿效果。',
     aiStudioFaceSelectedTag: '已選',
     aiStudioFacePresetLabel: '預設臉孔',
     aiStudioFaceUploadedLabel: '自訂',
@@ -205,7 +207,7 @@ export const zh = {
     artisanMessagesUnread: '你共有 {count} 則未讀訊息',
 
     // Artisan Settings
-    artisanNameZhang: '王師傅',
+    artisanNameZhang: '張師傅',
     artisanSettingsBio: '結合上海裁剪與現代線條的長衫裁縫師',
     artisanSettingsSwitchToUser: '切換到用戶模式',
     artisanSettingsAccount: '帳戶資料',

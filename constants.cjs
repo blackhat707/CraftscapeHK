@@ -13,9 +13,7 @@ const CRAFTS = [
       en: "Canton Porcelain, also known as 'Guangzhou Weaving Gold Painted Porcelain', is an on-glaze painted porcelain craft developed in Guangzhou since the Qing Dynasty. It is renowned for its brilliant colors, full compositions, and splendid golden decorations, representing a fusion of Eastern and Western cultures."
     },
     images: [
-      "https://gw.alicdn.com/imgextra/i1/2356757853/O1CN01ejsxjZ27sixqTgpGx_!!0-item_pic.jpg_Q75.jpg_.webp",
-      "https://picsum.photos/seed/porcelain2/800/1200",
-      "https://picsum.photos/seed/porcelain3/800/1200"
+      "https://gw.alicdn.com/imgextra/i1/2356757853/O1CN01ejsxjZ27sixqTgpGx_!!0-item_pic.jpg_Q75.jpg_.webp"
     ],
     history: {
       zh: "廣彩始於清朝康熙晚期，盛於雍正、乾隆年間。當時廣州作為唯一的對外通商口岸，將景德鎮的白瓷胎運來，根據外商訂單加以彩繪，再出口海外，風靡歐洲。",
@@ -32,7 +30,7 @@ const CRAFTS = [
     artisan: { zh: "劉師傅", en: "Master Lau" },
     short_description: { zh: "點亮香港夜空的視覺符號", en: "The visual symbol that lights up Hong Kong's night sky" },
     full_description: { zh: "霓虹燈招牌曾是香港繁華都市景觀的代名詞。師傅們用火焰和巧手，將玻璃管彎曲成各種文字和圖案，再注入惰性氣體，通電後發出迷人光芒。", en: "Neon signs were once synonymous with Hong Kong's bustling cityscape. Artisans use flame and skill to bend glass tubes into various characters and patterns, then fill them with inert gas, which emits a charming glow when electrified." },
-    images: ["https://images.unsplash.com/photo-1653402265323-669169d9e5c2?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "https://picsum.photos/seed/neon2/800/1200"],
+    images: ["https://images.unsplash.com/photo-1653402265323-669169d9e5c2?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"],
     history: { zh: "1920年代，霓虹燈技術傳入香港，並在二戰後迎來黃金時代。大街小巷掛滿了各式各樣的霓虹招牌，成為香港獨特的賽博朋克美學象徵。然而，隨著LED等新技術的興起，這門手藝正瀕臨失傳。", en: "Neon technology was introduced to Hong Kong in the 1920s and saw its golden age after World War II. Streets and alleys were filled with various neon signs, becoming a unique symbol of Hong Kong's cyberpunk aesthetics. However, with the rise of new technologies like LED, this craft is on the verge of extinction." },
     story: { zh: "入行四十多年的劉師傅，見證了霓虹燈行業的起起落落。他堅持用傳統方法製作每一件作品，從吹管、屈管到抽真空、充電，一絲不苟。對他而言，霓虹燈不僅是照明工具，更是一種有溫度、有靈魂的藝術品。", en: "Master Lau, with over forty years in the industry, has witnessed the ups and downs of the neon sign business. He insists on using traditional methods for every piece, from glass blowing and bending to vacuuming and charging, with meticulous care. To him, a neon sign is not just a lighting tool but a warm, soulful piece of art." }
   },
@@ -42,7 +40,7 @@ const CRAFTS = [
     artisan: { zh: "陳師傅", en: "Master Chan" },
     short_description: { zh: "指尖上的智慧與博弈", en: "Wisdom and strategy at your fingertips" },
     full_description: { zh: "在機器雕刻普及之前，每一隻麻雀牌都由師傅用雕刻刀在牛骨或塑膠上精心雕琢而成。這門手藝不僅考驗刀功，更需要極大的耐心和眼力。", en: "Before machine carving became common, each mahjong tile was meticulously carved by an artisan with a knife on bone or plastic. This craft requires not only excellent carving skills but also immense patience and sharp eyesight." },
-    images: ["https://images.unsplash.com/photo-1698270931936-3b8ece9d981d?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "https://picsum.photos/seed/mahjong2/800/1200", "https://picsum.photos/seed/mahjong3/800/1200"],
+    images: ["https://images.unsplash.com/photo-1698270931936-3b8ece9d981d?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"],
     history: { zh: "麻雀的歷史源遠流長，而手雕麻雀的技藝在20世紀中葉的香港最為鼎盛。當時麻雀是家家戶戶主要的娛樂活動，對麻雀牌的需求極大，養活了許多手雕師傅。", en: "Mahjong has a long history, and the art of hand-carving tiles peaked in Hong Kong in the mid-20th century. At that time, mahjong was a primary form of entertainment for households, creating a huge demand for tiles and supporting many carving masters." },
     story: { zh: "陳師傅是香港碩果僅存的手雕麻雀師傅之一。他的小店隱藏在九龍的舊區，幾十年來，工作台上堆滿了雕刻刀和牌塊。他感嘆現在已經很少有人願意入行，但他依然堅持，希望為後人留下這份屬於香港人的集體回憶。", en: "Master Chan is one of the last remaining hand-carved mahjong tile masters in Hong Kong. His small shop is hidden in an old district of Kowloon, his workbench piled high with carving tools and tiles for decades. He laments that few are willing to enter the trade now, but he perseveres, hoping to preserve this piece of collective memory for Hong Kongers." }
   },
@@ -52,7 +50,7 @@ const CRAFTS = [
     artisan: { zh: "王師傅", en: "Master Wong" },
     short_description: { zh: "展現東方女性美的經典服飾", en: "Classic attire that showcases Eastern female beauty" },
     full_description: { zh: "香港的長衫製作技藝以其精湛的剪裁和手工聞名，被稱為「海派」風格。它貼合女性身體曲線，優雅含蓄，是中西合璧的時尚典範。", en: "Hong Kong's cheongsam-making is renowned for its exquisite tailoring and craftsmanship, known as the 'Shanghai style'. It fits the female body's curves, is elegant and subtle, and a prime example of fashion that blends Eastern and Western aesthetics." },
-    images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/A_White_cheongsam_at_Shum_Shui_Po.jpg/1024px-A_White_cheongsam_at_Shum_Shui_Po.jpg?20211210172938", "https://picsum.photos/seed/cheongsam2/800/1200"],
+    images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/A_White_cheongsam_at_Shum_Shui_Po.jpg/1024px-A_White_cheongsam_at_Shum_Shui_Po.jpg?20211210172938"],
     history: { zh: "1920年代，長衫在上海興起，後隨大量上海裁縫南下傳入香港，並在香港發揚光大。從日常穿著到電影《花樣年華》中的經典形象，長衫記錄了香港社會的變遷。", en: "The cheongsam rose to popularity in Shanghai in the 1920s and was later brought to Hong Kong by a large number of Shanghainese tailors, where it was further developed. From daily wear to the iconic images in the film 'In the Mood for Love', the cheongsam has recorded the changes in Hong Kong society." },
     story: { zh: "王師傅從16歲開始跟隨父親學習製作長衫，至今已有50個年頭。他堅持為每一位客人量身定做，從選料、畫樣、裁剪到縫製、盤扣，每一個步驟都親力為。他說，一件好的長衫是有生命的，能陪伴主人度過許多重要時刻。", en: "Master Wong began learning to make cheongsams from his father at the age of 16 and has been doing it for 50 years. He insists on custom-tailoring for every client, handling every step himself, from fabric selection and pattern drawing to cutting, sewing, and knot buttons. He says a good cheongsam has a life of its own and can accompany its owner through many important moments." }
   },
@@ -62,7 +60,7 @@ const CRAFTS = [
     artisan: { zh: "李師傅", en: "Master Lee" },
     short_description: { zh: "感受油墨與紙張的溫度", en: "Feel the warmth of ink and paper" },
     full_description: { zh: "活字印刷是一種古老的印刷技術，透過將凸起的鉛字或圖案壓印在紙張上，留下深刻而有質感的印記。每一個字、每一條線條都充滿了手工的溫度與不完美的美。", en: "Letterpress printing is an ancient printing technique that creates a deep, tactile impression by pressing raised type or images onto paper. Every character and line is filled with the warmth of handcraft and the beauty of imperfection." },
-    images: ["https://images.unsplash.com/photo-1653888702916-599a590837c2", "https://images.unsplash.com/photo-1595142571206-88f8c64a9845", "https://picsum.photos/seed/letterpress3/800/1200"],
+    images: ["https://images.unsplash.com/photo-1653888702916-599a590837c2"],
     history: { zh: "活字印刷術由畢昇發明，後經古騰堡改良傳至西方。在數碼印刷興起前，它是書籍、報紙和各種印刷品的主要生產方式。香港的印刷業曾十分輝煌，許多小型印刷廠都以活字印刷為生。", en: "Invented by Bi Sheng and later refined by Gutenberg in the West, letterpress was the primary method for producing books, newspapers, and other printed materials before the rise of digital printing. Hong Kong's printing industry was once glorious, with many small print shops relying on letterpress." },
     story: { zh: "李師傅的印刷廠是他父親留下來的。面對數碼時代的衝擊，他沒有放棄，反而將傳統工藝轉化為一種藝術體驗。他開放工作室，舉辦工作坊，讓更多人能親手操作沉重的印刷機，感受鉛字的重量和油墨的芳香，重新發現慢下來的美好。", en: "Master Lee's printing press was passed down from his father. Facing the challenges of the digital age, he didn't give up. Instead, he transformed the traditional craft into an artistic experience. He opened his studio for workshops, allowing people to operate the heavy machinery, feel the weight of lead type, and smell the ink, rediscovering the beauty of slowing down." },
     category: "letterpress"

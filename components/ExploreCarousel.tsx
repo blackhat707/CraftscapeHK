@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { AnimatePresence, motion, PanInfo, useDragControls } from 'framer-motion';
+import { AnimatePresence, motion, PanInfo } from 'framer-motion';
 import type { Craft } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAppContext } from '../contexts/AppContext';
@@ -165,24 +165,12 @@ const ExploreCarouselCard: React.FC<ExploreCarouselCardProps> = ({
   cardGap
 }) => {
   const [dragAxis, setDragAxis] = useState<'x' | 'y' | null>(null);
-  const dragControls = useDragControls();
 
   useEffect(() => {
     if (!isActive || openingCardId !== null) {
       setDragAxis(null);
     }
   }, [isActive, openingCardId]);
-
-  const handlePointerDown = useCallback((event: React.PointerEvent) => {
-    if (!isActive || openingCardId !== null) {
-      return;
-    }
-    const target = event.target as HTMLElement;
-    if (target.closest('[data-no-drag]')) {
-      return;
-    }
-    dragControls.start(event);
-  }, [dragControls, isActive, openingCardId]);
 
   const handleDrag = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (!isActive || openingCardId !== null || dragAxis) {
@@ -256,7 +244,10 @@ const ExploreCarouselCard: React.FC<ExploreCarouselCardProps> = ({
   return (
     <motion.div
       className="absolute"
-      style={{ pointerEvents: isActive && openingCardId === null ? 'auto' : 'none' }}
+      style={{ 
+        pointerEvents: isActive && openingCardId === null ? 'auto' : 'none',
+        touchAction: isActive && openingCardId === null ? 'none' : 'auto'
+      }}
       initial={{ opacity: 0, scale: isActive ? 1.05 : 0.88, x: position * cardGap }}
       animate={{
         x: position * cardGap,
@@ -270,24 +261,25 @@ const ExploreCarouselCard: React.FC<ExploreCarouselCardProps> = ({
         ? { duration: 0.32, ease: [0.4, 0, 0.2, 1] }
         : { duration: 0.45, ease: [0.45, 0.05, 0.55, 0.95] }}
       drag={isActive && openingCardId === null ? (dragAxis ?? true) : false}
-      dragControls={dragControls}
-      dragListener={false}
       dragConstraints={isActive && openingCardId === null ? { top: -320, bottom: 0 } : undefined}
       dragElastic={0.22}
       dragMomentum={false}
       dragDirectionLock
-      onPointerDown={handlePointerDown}
       onDrag={isActive && openingCardId === null ? handleDrag : undefined}
       onDragEnd={handleDragEnd}
       onPointerCancel={handleDragCancel}
       onPointerLeave={handleDragCancel}
     >
-      <div className="w-[88vw] max-w-[360px] h-[68vh] max-h-[600px] rounded-[18px] overflow-hidden bg-[var(--color-surface)] shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
-        <div className="relative w-full h-full">
+      <div 
+        className="w-[88vw] max-w-[360px] h-[68vh] max-h-[600px] rounded-[18px] overflow-hidden bg-[var(--color-surface)] shadow-[0_24px_60px_rgba(0,0,0,0.35)]"
+        style={{ touchAction: 'none' }}
+      >
+        <div className="relative w-full h-full" style={{ touchAction: 'none' }}>
           <img
             src={craft.images[0]}
             alt={craft.name[language]}
             className="w-full h-full object-cover"
+            draggable={false}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-8 pr-20">
@@ -314,6 +306,7 @@ const ExploreCarouselCard: React.FC<ExploreCarouselCardProps> = ({
             onClick={handleToggleFavorite}
             onPointerDownCapture={handleDragCancel}
             onPointerUpCapture={handleDragCancel}
+            style={{ touchAction: 'auto' }}
             aria-label={isFavorite ? (language === 'zh' ? '移除收藏' : 'Remove from favorites') : (language === 'zh' ? '加入收藏' : 'Add to favorites')}
           >
             <svg
@@ -336,6 +329,7 @@ const ExploreCarouselCard: React.FC<ExploreCarouselCardProps> = ({
             onClick={handleOpenClick}
             onPointerDownCapture={handleDragCancel}
             onPointerUpCapture={handleDragCancel}
+            style={{ touchAction: 'auto' }}
             aria-label={language === 'zh' ? '探索工藝詳情' : 'View craft details'}
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
