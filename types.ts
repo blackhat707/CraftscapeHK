@@ -143,7 +143,18 @@ export interface CanvasElement {
   isOutline: boolean;
 }
 
+export interface AiLayoutElement {
+  glyph: GlyphName;
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+  fontWeight: number;
+  isMirror?: boolean;
+  isOutline?: boolean;
+}
+
 export interface AiLayout {
   description: string;
-  elements: Omit<CanvasElement, 'id' | 'zIndex' | 'char'>[];
+  elements: AiLayoutElement[];
 }

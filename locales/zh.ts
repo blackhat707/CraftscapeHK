@@ -230,4 +230,7 @@ export const zh = {
     artisanChatroomCustomerLabel: '顧客',
     languageEnglish: '英文',
     languageChinese: '中文',
+    textLabContactTitle: '聯繫{artisan}',
+    textLabContactSubtitle: '分享您的印章設計理念，讓工藝師為您提供專業建議。',
+    textLabContactMessageTemplate: '師傅您好，我剛剛創作了這個印章設計：「{prompt}」，想和您討論實體化的可能性。',
 };

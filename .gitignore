@@ -21,6 +21,7 @@ database.sqlite
 # IDE and editor files
 .vscode/
 .idea/
+.gemini/
 *.swp
 *.swo
 *~

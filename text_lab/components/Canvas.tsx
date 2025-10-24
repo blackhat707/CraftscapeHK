@@ -209,12 +209,16 @@ const Canvas: React.FC<CanvasProps> = ({
   const sortedElements = [...elements].sort((a, b) => a.zIndex - b.zIndex);
 
   return (
-    <div className="flex-1 bg-[var(--color-surface)] rounded-lg shadow-md p-4 flex items-center justify-center aspect-square border border-[var(--color-border)]">
+    <div
+      className="flex-1 bg-[var(--color-surface)] rounded-lg shadow-md p-4 flex items-center justify-center aspect-square border border-[var(--color-border)] select-none"
+      style={{ userSelect: "none", WebkitUserSelect: "none" }}
+    >
       <svg
         id="canvas-svg"
         ref={canvasRef}
         viewBox="0 0 300 300"
-        className="w-full h-full bg-[var(--color-bg)] cursor-default touch-none"
+        className="w-full h-full bg-[var(--color-bg)] cursor-default touch-none select-none"
+        style={{ userSelect: "none", WebkitUserSelect: "none" }}
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
         onPointerDown={(e) => {

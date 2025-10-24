@@ -229,9 +229,12 @@ export const en = {
     artisanChatroomTranslatedLabel: 'Translated ({language})',
     artisanChatroomAutoTranslationFallback: 'Auto translation:',
     artisanChatroomAutoTranslatedTag: 'Auto translated',
-    artisanChatroomAutoTranslateNotice: 'We’ll send this in English automatically:',
+    artisanChatroomAutoTranslateNotice: "We'll send this in English automatically:",
     artisanChatroomYouLabel: 'You',
     artisanChatroomCustomerLabel: 'Customer',
     languageEnglish: 'English',
     languageChinese: 'Chinese',
+    textLabContactTitle: 'Contact {artisan}',
+    textLabContactSubtitle: 'Share your seal design concept and let the artisan guide the next steps.',
+    textLabContactMessageTemplate: 'Hello {artisan}, I just created this seal design: "{prompt}". Could we explore making a real piece together?',
 };
