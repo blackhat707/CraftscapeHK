@@ -16,10 +16,10 @@ const NavItem: React.FC<{
       className="flex flex-col items-center justify-center gap-1 w-full transition-all duration-300 focus:outline-none"
       style={{ WebkitTapHighlightColor: 'transparent' }}
     >
-      <div className={`transition-colors select-none pointer-events-none ${isActive ? 'text-[var(--color-primary-accent)]' : 'text-[var(--color-text-secondary)]'}`}>
+      <div className={`transition-colors select-none pointer-events-none ${isActive ? 'text-[var(--color-primary-accent)] opacity-100' : 'text-[var(--color-text-secondary)] opacity-80'}`}>
         {children({ isActive })}
       </div>
-      <span className={`text-xs font-medium transition-colors ${isActive ? 'text-[var(--color-primary-accent)]' : 'text-[var(--color-text-secondary)]'}`}>
+      <span className={`text-xs font-medium transition-colors ${isActive ? 'text-[var(--color-primary-accent)] opacity-100' : 'text-[var(--color-text-secondary)] opacity-80'}`}>
         {label}
       </span>
     </button>

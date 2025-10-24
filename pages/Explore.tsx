@@ -48,7 +48,7 @@ const Explore: React.FC<ExploreProps> = ({ onShowDetails }) => {
     }
 
     return (
-        <div className="h-full w-full flex flex-col bg-[var(--color-bg)] text-[var(--color-text-primary)] overflow-hidden">
+        <div className="h-full w-full flex flex-col bg-[var(--color-bg)] text-[var(--color-text-primary)] overflow-hidden" style={{ touchAction: 'pan-y' }}>
             {/* Museum-style Header */}
             <header className="p-6 pb-2 sticky top-0 bg-[var(--color-bg)]/80 backdrop-blur-md z-10">
                 <div className="flex items-baseline justify-between gap-4">
@@ -67,7 +67,7 @@ const Explore: React.FC<ExploreProps> = ({ onShowDetails }) => {
             </header>
 
             {/* Carousel Container */}
-            <div className="flex-grow relative flex items-center justify-center px-4 pb-24">
+            <div className="flex-grow relative flex items-center justify-center px-4 pb-24" style={{ touchAction: 'none' }}>
                 <ExploreCarousel 
                     crafts={crafts} 
                     onCardTap={onShowDetails}

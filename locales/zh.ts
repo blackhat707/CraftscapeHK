@@ -207,7 +207,7 @@ export const zh = {
     artisanMessagesUnread: '你共有 {count} 則未讀訊息',
 
     // Artisan Settings
-    artisanNameZhang: '張師傅',
+    artisanNameZhang: '王師傅',
     artisanSettingsBio: '結合上海裁剪與現代線條的長衫裁縫師',
     artisanSettingsSwitchToUser: '切換到用戶模式',
     artisanSettingsAccount: '帳戶資料',

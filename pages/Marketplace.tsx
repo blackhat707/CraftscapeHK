@@ -128,8 +128,8 @@ const Marketplace: React.FC<MarketplaceProps> = ({ onSelectProduct }) => {
                         ))}
                         {filteredProducts.length === 0 && (
                             <div className="text-center py-12">
-                                <p className="text-[var(--color-text-secondary)] mb-2">No products found</p>
-                                <p className="text-sm text-[var(--color-text-secondary)]">Try adjusting your search</p>
+                                <p className="text-[var(--color-text-secondary)] mb-2">{t('marketplaceNoProducts')}</p>
+                                <p className="text-sm text-[var(--color-text-secondary)]">{t('marketplaceNoProductsHint')}</p>
                             </div>
                         )}
                     </div>

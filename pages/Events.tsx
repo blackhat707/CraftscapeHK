@@ -73,6 +73,9 @@ const FeaturedEventCard: FC<{ event: Event, onSelect: () => void }> = ({ event, 
                     alt={event.title[language]} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
+                {/* Dark overlay for better text readability */}
+                <div className="absolute inset-0 bg-black/35"></div>
+                {/* Gradient overlay for smooth transition */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
                 <div className="absolute bottom-4 left-4 right-4">
                     <h3 className="font-bold text-lg text-white mb-1 leading-tight">

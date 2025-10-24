@@ -19,10 +19,10 @@ const NavItem: React.FC<{
       whileTap={{ scale: 0.95 }}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
     >
-      <div className={`transition-all duration-200 select-none pointer-events-none ${isActive ? 'text-[var(--color-primary-accent)] opacity-100' : 'text-[var(--color-text-secondary)] opacity-50'}`}>
+      <div className={`transition-all duration-200 select-none pointer-events-none ${isActive ? 'text-[var(--color-primary-accent)] opacity-100' : 'text-[var(--color-text-secondary)] opacity-80'}`}>
         {children({ isActive })}
       </div>
-      <span className={`mt-1 text-xs font-medium leading-none transition-all duration-200 ${isActive ? 'text-[var(--color-primary-accent)] opacity-100' : 'text-[var(--color-text-secondary)] opacity-50'}`}>
+      <span className={`mt-1 text-xs font-medium leading-none transition-all duration-200 ${isActive ? 'text-[var(--color-primary-accent)] opacity-100' : 'text-[var(--color-text-secondary)] opacity-80'}`}>
         {label}
       </span>
     </motion.button>
@@ -85,9 +85,9 @@ const BottomNav: React.FC<{ activeTab: Tab; setActiveTab: (tab: Tab) => void; }>
         <motion.button
           onClick={() => setActiveTab(Tab.Explore)}
           aria-label="Open Explore"
-          className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 ${activeTab === Tab.Explore ? 'bg-[var(--color-primary-accent)] text-white shadow-[0_12px_36px_rgba(5,58,106,0.25)]' : 'bg-[color:rgba(5,58,106,0.15)] text-[var(--color-primary-accent)] shadow-none'}`}
+          className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 ${activeTab === Tab.Explore ? 'bg-[var(--color-primary-accent)] text-white shadow-[0_12px_36px_rgba(5,58,106,0.25)]' : 'bg-[var(--color-surface)] text-[var(--color-primary-accent)] shadow-none border-2 border-[var(--color-primary-accent)]'}`}
           style={{
-            border: '3px solid var(--color-bg)'
+            border: activeTab === Tab.Explore ? '3px solid var(--color-bg)' : undefined
           }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
