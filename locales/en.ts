@@ -123,6 +123,7 @@ export const en = {
     aiStudioGenerateWithTranslation: 'Generate tile with {translation}',
     aiStudioTranslationLabelFallback: 'your translation',
     aiStudioContactMessageTemplateTranslated: 'Hello {artisan}, I just generated this mahjong concept: "{translation}" (from "{original}"). Could we explore making a real piece together?',
+    aiStudioContactPatternDraftNote: 'I\'ve included the pattern draft for reference as well.',
     aiStudioModeLabel: 'Studio mode',
     aiStudioModeConcept: 'Concept art',
     aiStudioModeTryOn: 'Try-on',
@@ -141,6 +142,12 @@ export const en = {
     aiStudioTryOnFaceRequired: 'Pick or upload a face before generating.',
     aiStudioFaceUploadError: 'We couldn’t read that photo. Please try another image.',
     aiStudioUploadedFaceLabel: 'New face reference',
+    aiStudioPatternDraftTitle: 'Pattern draft',
+    aiStudioPatternDraftSubtitle: 'A pattern sheet to guide embroidery placement, stitch work, and color choices.',
+    aiStudioPatternDraftBadge: 'pattern draft',
+    aiStudioPatternDraftAlt: 'Cheongsam pattern draft',
+    aiStudioPatternDraftError: 'Couldn’t generate a pattern draft right now. Try again with a slight tweak.',
+    aiStudioPatternDraftLoading: 'Generating pattern draft...',
 
     // Event Detail
     eventDetailTitle: 'Event Details',

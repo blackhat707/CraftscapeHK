@@ -16,7 +16,13 @@ const SPECIAL_TRANSLATION_IMAGES: Record<string, string> = {
   '港大': '/images/presets/hku.png',
 };
 
+const SPECIAL_TRANSLATION_IMAGE_FITS: Record<string, 'contain' | 'cover'> = {
+  '海莉': 'cover',
+  '港大': 'cover',
+};
+
 const SPECIAL_IMAGE_DELAY_MS = 2000;
+const PATTERN_PRESET_DELAY_MS = 2500;
 
 const sleep = (ms: number) => new Promise<void>((resolve) => {
   setTimeout(resolve, ms);
@@ -43,6 +49,11 @@ const buildCheongsamTryOnPrompt = (face: FaceProfile, craft: Craft, userPrompt: 
 const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
   const [prompt, setPrompt] = useState('');
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [generatedImageFit, setGeneratedImageFit] = useState<'contain' | 'cover'>('contain');
+  const [patternDraftImage, setPatternDraftImage] = useState<string | null>(null);
+  const [patternDraftImageFit, setPatternDraftImageFit] = useState<'contain' | 'cover'>('contain');
+  const [patternDraftFailed, setPatternDraftFailed] = useState(false);
+  const [isPatternDraftLoading, setIsPatternDraftLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [translationOptions, setTranslationOptions] = useState<TranslationOption[]>([]);
@@ -108,6 +119,14 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
   );
 
   const isTryOnMode = isCheongsamCraft && studioMode === 'try-on';
+  useEffect(() => {
+    if (isTryOnMode) {
+      setPatternDraftImage(null);
+      setPatternDraftImageFit('contain');
+      setPatternDraftFailed(false);
+      setIsPatternDraftLoading(false);
+    }
+  }, [isTryOnMode]);
 
   const handleSelectTranslation = useCallback((option: TranslationOption) => {
     setSelectedTranslation(option);
@@ -230,12 +249,22 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
       if (requiresTranslation && selectedTranslation) {
         return `${selectedTranslation.chinese} (${selectedTranslation.pronunciation}) — ${selectedTranslation.explanation}`;
       }
-      return effectivePrompt;
+      return [
+        'Generate a standalone cheongsam product shot.',
+        'Focus solely on the garment on a neutral mannequin or hanger.',
+        'Exclude hands, artisans, sewing scenes, or background props.',
+        `Design inspiration: ${effectivePrompt}`,
+      ].join('\n');
     })();
 
     setIsLoading(true);
     setTranslationError(null);
     setGeneratedImage(null);
+    setGeneratedImageFit('contain');
+    setPatternDraftImage(null);
+    setPatternDraftImageFit('contain');
+    setPatternDraftFailed(false);
+    setIsPatternDraftLoading(false);
     setLastUsedPrompt(effectivePrompt);
 
     try {
@@ -256,22 +285,39 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
       const specialImageUrl = specialTranslationKey
         ? SPECIAL_TRANSLATION_IMAGES[specialTranslationKey]
         : undefined;
+      const specialImageFit = specialTranslationKey
+        ? SPECIAL_TRANSLATION_IMAGE_FITS[specialTranslationKey]
+        : undefined;
+      const shouldGeneratePatternDraft = isCheongsamCraft && !isTryOnMode;
 
       let imageUrl: string;
+      let imageFit: 'contain' | 'cover' = 'contain';
+      let patternImageUrl: string | null = null;
+      let patternImageFit: 'contain' | 'cover' = 'contain';
 
       if (hardcodedImageUrl) {
         await sleep(SPECIAL_IMAGE_DELAY_MS);
         imageUrl = hardcodedImageUrl;
+        if (shouldGeneratePatternDraft && promptContainsDragon) {
+          await sleep(SPECIAL_IMAGE_DELAY_MS);
+          patternImageUrl = '/images/presets/dragon_draft.png';
+          patternImageFit = 'contain';
+        }
       } else if (specialImageUrl) {
         await sleep(SPECIAL_IMAGE_DELAY_MS);
         imageUrl = specialImageUrl;
+        if (specialImageFit) {
+          imageFit = specialImageFit;
+        }
       } else {
         imageUrl = await generateCraftImage(craft.name[language], modelPrompt);
       }
 
       setGeneratedImage(imageUrl);
+      setGeneratedImageFit(imageFit);
       setShouldShowContactCTA(!isTryOnMode);
       setRecentlyUsedTranslation(requiresTranslation && selectedTranslation ? { ...selectedTranslation } : null);
+      setIsLoading(false);
 
       if (isTryOnMode && selectedFace) {
         addTryOnLook({
@@ -291,6 +337,43 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
           imageUrl,
         });
       }
+
+      if (shouldGeneratePatternDraft) {
+        if (patternImageUrl) {
+          setPatternDraftFailed(false);
+          setPatternDraftImage(null);
+          setIsPatternDraftLoading(true);
+          setTimeout(() => {
+            setPatternDraftImage(patternImageUrl);
+            setPatternDraftImageFit(patternImageFit);
+            setIsPatternDraftLoading(false);
+          }, PATTERN_PRESET_DELAY_MS);
+        } else {
+          setIsPatternDraftLoading(true);
+          try {
+            const inspirationSource = [
+              trimmedPrompt,
+              requiresTranslation && selectedTranslation ? selectedTranslation.chinese : '',
+              requiresTranslation && selectedTranslation ? selectedTranslation.explanation : '',
+            ].filter(Boolean).join(' / ');
+            const patternPrompt = [
+              'Create a scanned pattern draft for a bespoke cheongsam.',
+              'Include repeating motif layout boxes, embroidery placement guides, stitch directions, and labeled color swatches.',
+              `Pattern inspiration: ${inspirationSource || craft.name.en}.`,
+              'Render the draft as a flat scanned sheet with light paper texture, clear inked annotations, and no extra objects.',
+            ].join('\n');
+            const generatedPattern = await generateCraftImage(`${craft.name[language]} pattern draft`, patternPrompt);
+            setPatternDraftImage(generatedPattern);
+            setPatternDraftImageFit('contain');
+            setPatternDraftFailed(false);
+          } catch (patternError) {
+            console.error(patternError);
+            setPatternDraftFailed(true);
+          } finally {
+            setIsPatternDraftLoading(false);
+          }
+        }
+      }
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : t('aiStudioErrorGeneric'));
@@ -307,6 +390,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
     addAiCreation,
     getMahjongTranslationSuggestions,
     isTryOnMode,
+    isCheongsamCraft,
     selectedFace,
     t,
     addTryOnLook,
@@ -315,7 +399,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
   const handleOpenContact = useCallback(() => {
     setContactName('');
     setContactEmail('');
-    const messageTemplate = recentlyUsedTranslation
+    let messageTemplate = recentlyUsedTranslation
       ? t('aiStudioContactMessageTemplateTranslated', {
           artisan: craft.artisan[language],
           translation: recentlyUsedTranslation.chinese,
@@ -325,11 +409,14 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
           artisan: craft.artisan[language],
           prompt: lastUsedPrompt || prompt,
         });
+    if (patternDraftImage) {
+      messageTemplate = `${messageTemplate}\n\n${t('aiStudioContactPatternDraftNote')}`;
+    }
     setContactMessage(messageTemplate);
     setContactSuccess(false);
     setIsSubmittingContact(false);
     setIsContactOpen(true);
-  }, [craft, language, lastUsedPrompt, prompt, recentlyUsedTranslation, lastOriginalPrompt, t]);
+  }, [craft, language, lastUsedPrompt, prompt, recentlyUsedTranslation, lastOriginalPrompt, patternDraftImage, t]);
 
   const handleCloseContact = useCallback(() => {
     setIsContactOpen(false);
@@ -558,7 +645,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
             <motion.img 
               src={generatedImage} 
               alt="AI generated craft" 
-              className="w-full h-full object-contain rounded-2xl"
+              className={`w-full h-full ${generatedImageFit === 'cover' ? 'object-cover' : 'object-contain'} rounded-2xl`}
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -581,6 +668,52 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
             </motion.div>
           )}
         </motion.div>
+
+        {isCheongsamCraft && !isTryOnMode && (isPatternDraftLoading || patternDraftImage || patternDraftFailed) && (
+          <motion.div
+            className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-5 space-y-4"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, type: 'spring', stiffness: 280, damping: 28 }}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-[var(--color-text-primary)]">{t('aiStudioPatternDraftTitle')}</p>
+                <p className="text-xs text-[var(--color-text-secondary)] mt-1">{t('aiStudioPatternDraftSubtitle')}</p>
+              </div>
+              <span className="text-[10px] uppercase tracking-wide text-[var(--color-text-secondary)]">
+                {t('aiStudioPatternDraftBadge')}
+              </span>
+            </div>
+            {isPatternDraftLoading && (
+              <div className="flex flex-col items-center justify-center gap-3 py-10 text-[var(--color-text-secondary)]">
+                <motion.div
+                  className="relative w-12 h-12"
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 1.4, ease: 'linear' }}
+                >
+                  <span className="absolute inset-0 rounded-full border-4 border-[var(--color-primary-accent)]/25" />
+                  <span className="absolute inset-1 rounded-full border-4 border-transparent border-t-[var(--color-primary-accent)]" />
+                </motion.div>
+                <p className="text-sm font-medium">{t('aiStudioPatternDraftLoading')}</p>
+              </div>
+            )}
+            {!isPatternDraftLoading && patternDraftImage && (
+              <motion.img
+                src={patternDraftImage}
+                alt={t('aiStudioPatternDraftAlt')}
+                className={`w-full ${patternDraftImageFit === 'cover' ? 'object-cover' : 'object-contain'} rounded-xl border border-[var(--color-border)]`}
+                style={{ maxHeight: '70vh' }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35 }}
+              />
+            )}
+            {!isPatternDraftLoading && !patternDraftImage && patternDraftFailed && (
+              <p className="text-xs text-[var(--color-error)]">{t('aiStudioPatternDraftError')}</p>
+            )}
+          </motion.div>
+        )}
 
         {requiresTranslation && (isTranslating || translationOptions.length > 0 || translationError) && (
           <div className="bg-[var(--color-surface)] p-4 rounded-xl mt-4 border border-[var(--color-border)] space-y-3">
@@ -727,12 +860,23 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
             ) : (
               <form onSubmit={handleSubmitContact} className="p-6 space-y-5">
                 <div className="flex gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
-                  {generatedImage && (
-                    <img
-                      src={generatedImage}
-                      alt={t('aiStudioContactPromptThumbnailAlt')}
-                      className="h-16 w-16 rounded-xl object-cover"
-                    />
+                  {(generatedImage || patternDraftImage) && (
+                    <div className="flex gap-2">
+                      {generatedImage && (
+                        <img
+                          src={generatedImage}
+                          alt={t('aiStudioContactPromptThumbnailAlt')}
+                          className="h-16 w-16 rounded-xl object-cover"
+                        />
+                      )}
+                      {patternDraftImage && (
+                        <img
+                          src={patternDraftImage}
+                          alt={t('aiStudioPatternDraftAlt')}
+                          className="h-16 w-16 rounded-xl object-cover"
+                        />
+                      )}
+                    </div>
                   )}
                   <div className="flex-1">
                     <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-secondary)]">

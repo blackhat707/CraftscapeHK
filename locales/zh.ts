@@ -122,6 +122,7 @@ export const zh = {
     aiStudioGenerateWithTranslation: '以「{translation}」生成麻雀圖案',
     aiStudioTranslationLabelFallback: '翻譯',
     aiStudioContactMessageTemplateTranslated: '師傅您好，我啱啱喺 AI 創作室整咗個概念：「{translation}」（由「{original}」轉寫），想同您傾吓可唔可以變成實物？',
+    aiStudioContactPatternDraftNote: '我亦附上圖案草圖，方便參考。',
     aiStudioModeLabel: '工作模式',
     aiStudioModeConcept: '概念設計',
     aiStudioModeTryOn: '試穿預覽',
@@ -140,6 +141,12 @@ export const zh = {
     aiStudioTryOnFaceRequired: '請先選擇或上載一個臉孔。',
     aiStudioFaceUploadError: '未能讀取照片，請再試另一張。',
     aiStudioUploadedFaceLabel: '新的臉孔參考',
+    aiStudioPatternDraftTitle: '圖案草圖',
+    aiStudioPatternDraftSubtitle: '提供刺繡位置、針法走向與配色參考的長衫圖案草圖。',
+    aiStudioPatternDraftBadge: '圖案草稿',
+    aiStudioPatternDraftAlt: '長衫圖案草圖',
+    aiStudioPatternDraftError: '未能生成圖案草圖，請稍後再試或調整靈感描述。',
+    aiStudioPatternDraftLoading: '圖案草稿生成中...',
 
     // Event Detail
     eventDetailTitle: '活動詳情',
