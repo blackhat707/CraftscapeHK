@@ -238,7 +238,7 @@ const ORDERS = [
 const MESSAGE_THREADS = [
   {
     id: "MSG-001",
-    customerName: "Sophie Grant",
+    customerName: "Goldwinter Homantin",
     lastMessage: "I'll send my measurements tonight so we stay on track.",
     timestamp: "下午 4:05",
     unread: true,
