@@ -135,6 +135,97 @@ const ArtisanChatroom: React.FC<ArtisanChatroomProps> = ({ thread, product, onCl
     [getLanguageLabel, t, viewMode],
   );
 
+  const renderRichElements = useCallback(
+    (text: string, options?: { textClass?: string; imageClass?: string }) => {
+      const { textClass = '', imageClass = '' } = options ?? {};
+      const segments: Array<{ type: 'text'; value: string } | { type: 'image'; src: string; alt: string }> = [];
+      const imageRegex = /<image\s+([^>]+?)\s*\/>/g;
+      let lastIndex = 0;
+      let match: RegExpExecArray | null;
+
+      while ((match = imageRegex.exec(text)) !== null) {
+        const preceding = text.slice(lastIndex, match.index);
+        if (preceding.trim().length > 0) {
+          segments.push({ type: 'text', value: preceding });
+        }
+        const attrs = match[1];
+        const src = attrs.match(/src="([^"]+)"/)?.[1] ?? '';
+        const alt = attrs.match(/alt="([^"]*)"/)?.[1] ?? '';
+        if (src) {
+          segments.push({ type: 'image', src, alt });
+        }
+        lastIndex = imageRegex.lastIndex;
+      }
+
+      const trailing = text.slice(lastIndex);
+      if (trailing.trim().length > 0 || segments.length === 0) {
+        segments.push({ type: 'text', value: trailing });
+      }
+
+      return segments
+        .map((segment, index) => {
+          if (segment.type === 'image') {
+            return (
+              <img
+                key={`img-${index}-${segment.src}`}
+                src={segment.src}
+                alt={segment.alt || 'attachment'}
+                className={`w-full rounded-xl object-cover border border-[var(--color-border)] ${imageClass}`.trim()}
+              />
+            );
+          }
+
+          if (segment.value.trim().length === 0) {
+            return null;
+          }
+
+          return (
+            <p
+              key={`text-${index}`}
+              className={`whitespace-pre-line leading-relaxed ${textClass}`.trim()}
+            >
+              {segment.value}
+            </p>
+          );
+        })
+        .filter((node): node is React.ReactNode => node !== null);
+    },
+    [],
+  );
+
+  const renderSystemMessage = useCallback(
+    (text: string, timestamp: string, secondary?: { label: string; text: string }) => {
+      const trimmed = text.trim();
+      const match = trimmed.match(/<system(?:\s+class="([^"]+)")?>([\s\S]*)<\/system>/i);
+      const systemClass = match?.[1] ?? '';
+      const body = match?.[2]?.trim() ?? trimmed;
+      const palette =
+        systemClass === 'payment-alert'
+          ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-400 shadow-sm'
+          : 'bg-[var(--color-secondary-accent)]/40 text-[var(--color-text-primary)] border border-[var(--color-border)]';
+      const secondaryBody = secondary
+        ? secondary.text.replace(/<system[^>]*>([\s\S]*)<\/system>/i, (_, inner) => inner?.trim() ?? '').trim()
+        : '';
+      const showSecondary = !!secondary && secondaryBody.length > 0 && secondaryBody !== body;
+
+      return (
+        <div className="flex justify-center">
+          <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-center space-y-2 ${palette}`}>
+            <div className="text-sm font-semibold whitespace-pre-line">{body}</div>
+            {showSecondary && (
+              <div className="text-xs opacity-70 whitespace-pre-line">
+                <span className="block font-semibold uppercase tracking-wide mb-1">{secondary?.label}</span>
+                {secondaryBody}
+              </div>
+            )}
+            <span className="text-xs opacity-60 block">{timestamp}</span>
+          </div>
+        </div>
+      );
+    },
+    [],
+  );
+
   const isSendDisabled = draft.trim().length === 0;
 
   const handleDraftChange = useCallback(
@@ -229,6 +320,16 @@ const ArtisanChatroom: React.FC<ArtisanChatroomProps> = ({ thread, product, onCl
           const isArtisan = message.sender === 'artisan';
           const { primaryText, secondary } = computeDisplayContent(message);
           const showAutoTranslatedBadge = message.language === 'en' && viewMode === 'translated';
+          const trimmedPrimary = primaryText.trim();
+          const isSystemMessage = trimmedPrimary.startsWith('<system');
+
+          if (isSystemMessage) {
+            return (
+              <div key={message.id}>
+                {renderSystemMessage(trimmedPrimary, message.timestamp, secondary ?? undefined)}
+              </div>
+            );
+          }
 
           return (
             <div key={message.id} className={`flex ${isArtisan ? 'justify-end' : 'justify-start'}`}>
@@ -250,15 +351,26 @@ const ArtisanChatroom: React.FC<ArtisanChatroomProps> = ({ thread, product, onCl
                       </span>
                     )}
                   </div>
-                  <p className="whitespace-pre-line leading-relaxed text-sm">{primaryText}</p>
+                  <div className="space-y-2">
+                    {renderRichElements(primaryText, {
+                      textClass: 'text-sm',
+                      imageClass: isArtisan ? 'border-white/30' : '',
+                    })}
+                  </div>
                   {secondary && secondary.text.trim() !== primaryText.trim() && (
-                    <p
-                      className={`mt-2 text-xs leading-relaxed ${
-                        isArtisan ? 'text-white/80' : 'text-[var(--color-text-secondary)]'
-                      }`}
+                    <div
+                      className={`mt-2 ${isArtisan ? 'text-white/80' : 'text-[var(--color-text-secondary)]'}`}
                     >
-                      <span className="font-semibold">{secondary.label}:</span> {secondary.text}
-                    </p>
+                      <span className="font-semibold text-[10px] uppercase tracking-wide block mb-1">
+                        {secondary.label}
+                      </span>
+                      <div className="space-y-2">
+                        {renderRichElements(secondary.text, {
+                          textClass: 'text-xs',
+                          imageClass: isArtisan ? 'border-white/30' : '',
+                        })}
+                      </div>
+                    </div>
                   )}
                 </div>
                 <span className="text-xs text-[var(--color-text-secondary)] block text-right">{message.timestamp}</span>

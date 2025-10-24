@@ -183,7 +183,7 @@ export const en = {
 
     // Artisan Dashboard
     artisanDashboardTitle: 'Dashboard',
-    artisanDashboardWelcome: 'Welcome back, Master Zhang!',
+    artisanDashboardWelcome: 'Welcome back, Master Wong!',
     artisanDashboardTodaysOrders: 'Today\'s Orders',
     artisanDashboardUnreadMessages: 'Pending Messages',
     artisanDashboardMonthlyRevenue: 'Monthly Revenue',
@@ -209,8 +209,8 @@ export const en = {
     artisanMessagesUnread: 'You have {count} unread messages',
 
     // Artisan Settings
-    artisanNameZhang: 'Master Zhang',
-    artisanSettingsBio: 'Third-generation heir of a Canton Porcelain family',
+    artisanNameZhang: 'Master Wong',
+    artisanSettingsBio: 'Cheongsam tailor blending Shanghainese craftsmanship with modern silhouettes',
     artisanSettingsSwitchToUser: 'Switch to User Mode',
     artisanSettingsAccount: 'Account Information',
     artisanSettingsPayout: 'Payout Settings',

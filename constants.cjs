@@ -144,6 +144,9 @@ Handmade portable EL neon light decoration.` }
   { id: 4, name: { zh: "真絲手繪長衫訂製", en: "Custom Silk Hand-Painted Cheongsam" }, price: 6800, priceDisplay: { zh: "HK$ 6,800 起", en: "From HK$ 6,800" }, image: "https://picsum.photos/seed/product4/400/400", artisan: { zh: "王師傅", en: "Master Wong" }, full_description: { zh: "王師傅為您量身定做海派長衫，選用頂級真絲面料，並可根據您的喜好手繪圖案，打造專屬於您的優雅。", en: "Master Wong will custom-tailor a Shanghai-style cheongsam for you, using top-grade silk fabric. It can be hand-painted with a design of your choice to create your own unique elegance." } },
   { id: 5, name: { zh: "廣彩花鳥圖案咖啡杯", en: "Canton Porcelain Flora & Fauna Coffee Cup" }, price: 580, priceDisplay: { zh: "HK$ 580", en: "HK$ 580" }, image: "https://picsum.photos/seed/product5/400/400", artisan: { zh: "張師傅", en: "Master Zhang" }, full_description: { zh: "將傳統廣彩藝術融入現代生活，這款咖啡杯繪有精美的花鳥圖案，為您的咖啡時光增添一抹東方韻味。", en: "Integrating traditional Canton Porcelain art into modern life, this coffee cup features exquisite flora and fauna patterns, adding a touch of Eastern charm to your coffee time." } },
   { id: 6, name: { zh: "迷你桌面霓虹燈飾", en: "Mini Desktop Neon Light" }, price: 890, priceDisplay: { zh: "HK$ 890", en: "HK$ 890" }, image: "https://picsum.photos/seed/product6/400/400", artisan: { zh: "劉師傅", en: "Master Lau" }, full_description: { zh: "小巧精緻的桌面霓虹燈，可選擇預設圖案或簡單訂製，為您的書桌或床頭增添一抹賽博朋克風格的亮色。", en: "A small and exquisite desktop neon light. Choose from preset designs or simple customizations to add a touch of cyberpunk brightness to your desk or bedside." } },
+  { id: 12, name: { zh: "盤金鳳凰婚嫁長衫", en: "Goldwork Phoenix Bridal Cheongsam" }, price: 12800, priceDisplay: { zh: "HK$ 12,800", en: "HK$ 12,800" }, image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=600&auto=format&fit=crop", artisan: { zh: "王師傅", en: "Master Wong" }, full_description: { zh: "以廣東盤金繡線打造的鳳凰婚嫁長衫，配合立體珠片與手縫金線，呈現華麗層次。提供身段量度及試身服務。", en: "A bridal cheongsam featuring Cantonese goldwork phoenix embroidery with dimensional beadwork and hand-laid gold threads. Includes full measurements and fitting sessions." } },
+  { id: 13, name: { zh: "霞帔披肩長衫套裝", en: "Cheongsam with Xiapei Cape Ensemble" }, price: 9800, priceDisplay: { zh: "HK$ 9,800", en: "HK$ 9,800" }, image: "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?q=80&w=600&auto=format&fit=crop", artisan: { zh: "王師傅", en: "Master Wong" }, full_description: { zh: "絲綢立體提花布配以可拆式霞帔披肩，適合茶禮及敬酒場合。可按身形調整腰線與裙擺開岔高度。", en: "Silk jacquard cheongsam paired with a detachable xiapei cape, ideal for tea ceremonies and banquets. Waistline and slit height tailored to each wearer." } },
+  { id: 14, name: { zh: "母女裝迷你長衫套裝", en: "Mother-Daughter Mini Cheongsam Set" }, price: 7600, priceDisplay: { zh: "HK$ 7,600", en: "HK$ 7,600" }, image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?q=80&w=600&auto=format&fit=crop", artisan: { zh: "王師傅", en: "Master Wong" }, full_description: { zh: "以柔軟竹節絲綢製作的親子長衫套裝，採用現代粉彩配色與暗紋刺繡，適合家庭影樓拍攝。", en: "A mother-daughter cheongsam set in bamboo silk with a pastel palette and subtle embroidery, perfect for studio portraits." } },
 ];
 
 const EVENTS = [
@@ -224,9 +227,136 @@ const EVENTS = [
   }
 ];
 
-const ORDERS = [ { id: "HK2024-001", customerName: "陳小姐", product: PRODUCTS.find(p => p.id === 1), quantity: 1, total: 1888, date: "2024-07-20", status: "待處理" } ];
+const ORDERS = [
+  { id: "QIPAO-2401", customerName: "梁小姐", product: PRODUCTS.find(p => p.id === 12), quantity: 1, total: 13800, date: "2024-07-22", status: "待處理" },
+  { id: "QIPAO-2402", customerName: "Amelia Collins", product: PRODUCTS.find(p => p.id === 13), quantity: 1, total: 10200, date: "2024-07-19", status: "已發貨" },
+  { id: "QIPAO-2403", customerName: "王太太", product: PRODUCTS.find(p => p.id === 4), quantity: 1, total: 7200, date: "2024-07-16", status: "已完成" },
+  { id: "QIPAO-2404", customerName: "Olivia Martinez", product: PRODUCTS.find(p => p.id === 14), quantity: 1, total: 7600, date: "2024-07-14", status: "已取消" },
+  { id: "QIPAO-2405", customerName: "Isabelle Dubois", product: PRODUCTS.find(p => p.id === 13), quantity: 2, total: 19600, date: "2024-07-10", status: "已完成" },
+];
 
-const MESSAGE_THREADS = [ { id: "MSG-001", customerName: "陳小姐", lastMessage: "請問可以訂製圖案嗎？", timestamp: "下午 3:45", unread: true, avatar: "https://picsum.photos/seed/msg1/100/100", productId: 1 } ];
+const MESSAGE_THREADS = [
+  {
+    id: "MSG-001",
+    customerName: "Sophie Grant",
+    lastMessage: "I'll send my measurements tonight so we stay on track.",
+    timestamp: "下午 4:05",
+    unread: true,
+    avatar: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=120&auto=format&fit=crop",
+    productId: 12,
+    messages: [
+      {
+        id: "MSG-001-1",
+        sender: "customer",
+        originalText: "Hello Master Wong, I just generated this blue dragon cheongsam concept. Could we explore making a real piece together?\n\nI've included the pattern draft for reference as well.\n\n<image src=\"/images/presets/dragon.jpeg\" alt=\"Blue dragon concept\" />\n<image src=\"/images/presets/dragon_draft.png\" alt=\"Pattern draft\" />",
+        translatedText: "王師傅您好，我啱啱生成咗一個藍龍長衫概念。可唔可以幫我做成實物？\n\n我同時附上布料草圖方便參考。",
+        language: "en",
+        timestamp: "下午 3:12"
+      },
+      {
+        id: "MSG-001-2",
+        sender: "artisan",
+        originalText: "多謝你分享藍龍嘅概念圖同草稿。我會安排龍紋盤金繡穿過前幅，袖口再加少少雲紋。先落訂二千港幣，我會出線稿同布料提案俾你確認。",
+        translatedText: "Thanks for sharing the concept and draft. I can sweep the dragon embroidery across the front panel and add soft cloud motifs on the cuffs. A HK$2,000 deposit lets me prepare the line art and fabric proposals for your approval.",
+        language: "zh",
+        timestamp: "下午 3:25"
+      },
+      {
+        id: "MSG-001-3",
+        sender: "customer",
+        originalText: "<system class=\"payment-alert\">Craftscape Pay ✅\nTransaction ID: CSP-9285\nDeposit HK$2,000 received via platform.</system>",
+                language: "en",
+        timestamp: "下午 3:42"
+      },
+      {
+        id: "MSG-001-4",
+        sender: "artisan",
+        originalText: "訂金已經收到，多謝。兩日內我會發初稿同建議面料。之後安排量身，預計六星期完成主體刺繡。",
+        translatedText: "Deposit received, thank you. I'll send the first sketches and fabric suggestions within two days, then arrange measurements. Expect about six weeks for the main embroidery.",
+        language: "zh",
+        timestamp: "下午 3:48"
+      },
+      {
+        id: "MSG-001-5",
+        sender: "customer",
+        originalText: "Perfect, I'll send my measurements tonight so we stay on track.",
+        translatedText: "太好了，我今晚會傳量身數據，保持進度。",
+        language: "en",
+        timestamp: "下午 4:05"
+      }
+    ]
+  },
+  {
+    id: "MSG-002",
+    customerName: "Natalie Brooks",
+    lastMessage: "I'll confirm the flight dates and book the fitting slot.",
+    timestamp: "上午 10:40",
+    unread: true,
+    avatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=120&auto=format&fit=crop",
+    productId: 13,
+    messages: [
+      {
+        id: "MSG-002-1",
+        sender: "customer",
+        originalText: "Hi! I'm based in Sydney and interested in the xiapei cape ensemble. Do you work with remote clients often?",
+        translatedText: "你好！我喺悉尼，好鍾意霞帔披肩長衫套裝。你哋習慣和海外客人合作嗎？",
+        language: "en",
+        timestamp: "上午 9:15"
+      },
+      {
+        id: "MSG-002-2",
+        sender: "artisan",
+        originalText: "有架，我哋會先網上量度，再寄出布樣。同時可以用視像會議講解披肩配搭。",
+        translatedText: "Yes, we do. We'll guide you through measurements online, mail fabric swatches, and go over cape styling on a video call.",
+        language: "zh",
+        timestamp: "上午 9:28"
+      },
+      {
+        id: "MSG-002-3",
+        sender: "customer",
+        originalText: "That's wonderful. I'll confirm the flight dates and book the fitting slot.",
+        translatedText: "太好了。我會確認航班日子，再預約量身時間。",
+        language: "en",
+        timestamp: "上午 10:40"
+      }
+    ]
+  },
+  {
+    id: "MSG-003",
+    customerName: "設計師 Ada",
+    lastMessage: "今晚前會畫個草圖俾你。",
+    timestamp: "昨天",
+    unread: false,
+    avatar: "https://picsum.photos/seed/msg3/100/100",
+    productId: 14,
+    messages: [
+      {
+        id: "MSG-003-1",
+        sender: "customer",
+        originalText: "想整一套母女裝長衫，底色想要碎花但唔想太密。你有咩建議？",
+        translatedText: "I'd like a mother-daughter cheongsam set with a floral base that's not too busy. Any suggestions?",
+        language: "zh",
+        timestamp: "昨天"
+      },
+      {
+        id: "MSG-003-2",
+        sender: "artisan",
+        originalText: "可以用竹節絲混少少棉，底色做暖奶油色，上面點啲碎花。感覺柔和又易襯。",
+        translatedText: "We can use bamboo silk blended with a little cotton, keep the base a warm cream tone, and scatter delicate florals—soft, versatile, and photo-friendly.",
+        language: "zh",
+        timestamp: "昨天"
+      },
+      {
+        id: "MSG-003-3",
+        sender: "customer",
+        originalText: "好啊！今晚前會畫個草圖俾你。",
+        translatedText: "Great! I'll sketch a proposal for you tonight.",
+        language: "zh",
+        timestamp: "昨天"
+      }
+    ]
+  },
+];
 
 const GLYPH_LIBRARY = [ { name: '手', glyph: 'shou' }, { name: '田', glyph: 'tian' }, { name: '水', glyph: 'shui' } ];
 

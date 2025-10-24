@@ -179,7 +179,7 @@ export const zh = {
 
     // Artisan Dashboard
     artisanDashboardTitle: '儀表板',
-    artisanDashboardWelcome: '歡迎回來，張師傅！',
+    artisanDashboardWelcome: '歡迎回來，王師傅！',
     artisanDashboardTodaysOrders: '今日訂單',
     artisanDashboardUnreadMessages: '待處理訊息',
     artisanDashboardMonthlyRevenue: '本月收入',
@@ -205,8 +205,8 @@ export const zh = {
     artisanMessagesUnread: '你共有 {count} 則未讀訊息',
 
     // Artisan Settings
-    artisanNameZhang: '張師傅',
-    artisanSettingsBio: '廣彩世家第三代傳人',
+    artisanNameZhang: '王師傅',
+    artisanSettingsBio: '結合上海裁剪與現代線條的長衫裁縫師',
     artisanSettingsSwitchToUser: '切換到用戶模式',
     artisanSettingsAccount: '帳戶資料',
     artisanSettingsPayout: '收款設定',
