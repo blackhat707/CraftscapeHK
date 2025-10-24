@@ -8,7 +8,10 @@ import React, {
 import type { Craft, TranslationOption, FaceProfile } from "../types";
 import { motion } from "framer-motion";
 import { useAppContext } from "../contexts/AppContext";
-import { generateCraftImage } from "../services/geminiService";
+import {
+  generateCraftImage,
+  generateTryOnImage,
+} from "../services/geminiService";
 import { getMahjongTranslationSuggestions } from "../services/translationService";
 import { useLanguage } from "../contexts/LanguageContext";
 
@@ -34,30 +37,6 @@ const sleep = (ms: number) =>
   new Promise<void>((resolve) => {
     setTimeout(resolve, ms);
   });
-
-const buildCheongsamTryOnPrompt = (
-  face: FaceProfile,
-  craft: Craft,
-  userPrompt: string
-) => {
-  const detailLines = [
-    "Model directive: fashion try-on, produce an elegant full-body portrait, cinematic lighting, 4k quality.",
-    `Garment focus: bespoke ${craft.name.en} with vintage Shanghainese tailoring, high mandarin collar, hand-bound pankou buttons, fluid silk drape.`,
-    "Pose: graceful stance, relaxed shoulders, confident smile.",
-    "Fabric styling: lustrous pearl-white silk with subtle floral embroidery, soft highlights, realistic folds.",
-    `Reference face: ${face.imageUrl}`,
-  ];
-
-  if (userPrompt.trim()) {
-    detailLines.push(`Personal styling notes: ${userPrompt.trim()}`);
-  }
-
-  detailLines.push(
-    "Keep body proportions natural, preserve face identity accurately, match skin tone and lighting between face and body."
-  );
-
-  return detailLines.join("\n");
-};
 
 const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
   const [prompt, setPrompt] = useState("");
@@ -97,6 +76,10 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
   const [selectedFaceId, setSelectedFaceId] = useState<string | null>(null);
   const [isFaceUploading, setIsFaceUploading] = useState(false);
   const [faceUploadError, setFaceUploadError] = useState<string | null>(null);
+  const [lastConceptCheongsamImage, setLastConceptCheongsamImage] = useState<
+    string | null
+  >(null);
+  const [lastConceptPrompt, setLastConceptPrompt] = useState<string>("");
   const faceFileInputRef = useRef<HTMLInputElement | null>(null);
   const {
     addAiCreation,
@@ -281,9 +264,6 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
     }
 
     const effectivePrompt = (() => {
-      if (isTryOnMode && selectedFace) {
-        return buildCheongsamTryOnPrompt(selectedFace, craft, trimmedPrompt);
-      }
       if (requiresTranslation && selectedTranslation) {
         return selectedTranslation.chinese;
       }
@@ -291,13 +271,10 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
     })();
 
     const modelPrompt = (() => {
-      if (isTryOnMode && selectedFace) {
-        return effectivePrompt;
-      }
       if (requiresTranslation && selectedTranslation) {
         return `${selectedTranslation.chinese} (${selectedTranslation.pronunciation}) — ${selectedTranslation.explanation}`;
       }
-      if (isCheongsamCraft) {
+      if (isCheongsamCraft && !isTryOnMode) {
         return [
           "Generate a standalone cheongsam product shot.",
           "Focus solely on the garment on a neutral mannequin or hanger.",
@@ -330,16 +307,6 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
       const promptContainsDragon = trimmedPrompt
         .toLowerCase()
         .includes("dragon");
-      const hardcodedImageUrl = (() => {
-        if (!isCheongsamCraft || !promptContainsDragon) {
-          return null;
-        }
-        if (isTryOnMode) {
-          return "/images/presets/dragon_tryon.png";
-        }
-        return "/images/presets/dragon.jpeg";
-      })();
-
       const specialTranslationKey =
         requiresTranslation && selectedTranslation && !isTryOnMode
           ? selectedTranslation.chinese
@@ -357,11 +324,24 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
       let patternImageUrl: string | null = null;
       let patternImageFit: "contain" | "cover" = "contain";
 
-      if (hardcodedImageUrl) {
+      // Check for hardcoded dragon try-on image (only for default face)
+      const isDefaultFace = selectedFace?.id === "1";
+      if (
+        isTryOnMode &&
+        isCheongsamCraft &&
+        promptContainsDragon &&
+        isDefaultFace
+      ) {
         await sleep(SPECIAL_IMAGE_DELAY_MS);
-        imageUrl = hardcodedImageUrl;
-        if (shouldGeneratePatternDraft && promptContainsDragon) {
-          await sleep(SPECIAL_IMAGE_DELAY_MS);
+        imageUrl = "/images/presets/dragon_tryon.png";
+      } else if (!isTryOnMode && isCheongsamCraft && promptContainsDragon) {
+        // Hardcoded dragon concept image
+        await sleep(SPECIAL_IMAGE_DELAY_MS);
+        imageUrl = "/images/presets/dragon.jpeg";
+        // Save for potential reuse in try-on
+        setLastConceptCheongsamImage(imageUrl);
+        setLastConceptPrompt(trimmedPrompt);
+        if (shouldGeneratePatternDraft) {
           patternImageUrl = "/images/presets/dragon_draft.png";
           patternImageFit = "contain";
         }
@@ -371,8 +351,28 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
         if (specialImageFit) {
           imageFit = specialImageFit;
         }
+      } else if (isTryOnMode && selectedFace) {
+        // Check if we can reuse the concept cheongsam image
+        const canReuseConceptImage =
+          lastConceptCheongsamImage &&
+          lastConceptPrompt === trimmedPrompt &&
+          !lastConceptCheongsamImage.includes("/presets/"); // Don't reuse hardcoded images
+
+        // Use the new try-on service for all other try-on requests
+        imageUrl = await generateTryOnImage(
+          craft.name[language],
+          selectedFace.imageUrl,
+          trimmedPrompt,
+          canReuseConceptImage ? lastConceptCheongsamImage : undefined
+        );
       } else {
         imageUrl = await generateCraftImage(craft.name[language], modelPrompt);
+
+        // Save concept cheongsam image for potential reuse in try-on mode
+        if (isCheongsamCraft && !isTryOnMode) {
+          setLastConceptCheongsamImage(imageUrl);
+          setLastConceptPrompt(trimmedPrompt);
+        }
       }
 
       setGeneratedImage(imageUrl);
@@ -391,7 +391,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
           craftName: craft.name[language],
           imageUrl,
           faceId: selectedFace.id,
-          faceLabel: selectedFace.label,
+          faceLabel: selectedFace.label[language],
           prompt: trimmedPrompt,
           mode: "cheongsam",
         });
@@ -429,14 +429,15 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
               .filter(Boolean)
               .join(" / ");
             const patternPrompt = [
-              "Create a scanned pattern draft for a bespoke cheongsam.",
-              "Include repeating motif layout boxes, embroidery placement guides, stitch directions, and labeled color swatches.",
+              "Create a scanned version pattern draft image, breaking down each parts of the clothes, handdrawn by designer of this clothes",
               `Pattern inspiration: ${inspirationSource || craft.name.en}.`,
+              "Use the attached reference image as a visual guide for the pattern details.",
               "Render the draft as a flat scanned sheet with light paper texture, clear inked annotations, and no extra objects.",
             ].join("\n");
             const generatedPattern = await generateCraftImage(
               `${craft.name[language]} pattern draft`,
-              patternPrompt
+              patternPrompt,
+              imageUrl // Pass the generated cheongsam image as reference
             );
             setPatternDraftImage(generatedPattern);
             setPatternDraftImageFit("contain");
@@ -688,7 +689,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
                         <div className="relative">
                           <img
                             src={face.imageUrl}
-                            alt={face.label}
+                            alt={face.label[language]}
                             className="h-28 w-full object-cover"
                           />
                           {isActive && (
@@ -699,7 +700,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
                         </div>
                         <div className="px-3 py-2">
                           <p className="text-sm font-semibold text-[var(--color-text-primary)] truncate">
-                            {face.label}
+                            {face.label[language]}
                           </p>
                           <p className="text-xs text-[var(--color-text-secondary)]">
                             {face.source === "preset"
@@ -716,13 +717,13 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
                   <div className="flex items-center gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-secondary-accent)]/40 p-3">
                     <img
                       src={selectedFace.imageUrl}
-                      alt={selectedFace.label}
+                      alt={selectedFace.label[language]}
                       className="w-14 h-14 rounded-full object-cover border border-[var(--color-border)]"
                     />
                     <div>
                       <p className="text-sm font-semibold text-[var(--color-text-primary)]">
                         {t("aiStudioFaceActiveLabel", {
-                          label: selectedFace.label,
+                          label: selectedFace.label[language],
                         })}
                       </p>
                       <p className="text-xs text-[var(--color-text-secondary)]">

@@ -116,16 +116,43 @@ export const getMessageThreads = async (): Promise<MessageThread[]> => {
  * AI Image Generation API
  * This calls the backend endpoint that securely handles the AI API key
  */
-export const generateCraftImageApi = async (craftName: string, userPrompt: string): Promise<string> => {
+export const generateCraftImageApi = async (
+    craftName: string, 
+    userPrompt: string,
+    referenceImageUrl?: string
+): Promise<string> => {
     try {
         const response = await apiRequest<{ imageUrl: string }>('/ai/generate-image', {
             method: 'POST',
-            body: JSON.stringify({ craftName, userPrompt }),
+            body: JSON.stringify({ craftName, userPrompt, referenceImageUrl }),
         });
         
         return response.imageUrl;
     } catch (error) {
         console.error('Failed to generate craft image:', error);
         throw new Error('Failed to generate image. Please try again later.');
+    }
+};
+
+/**
+ * AI Try-On Image Generation API
+ * This calls the backend endpoint for cheongsam try-on with face reference
+ */
+export const generateTryOnImageApi = async (
+    craftName: string, 
+    faceImageUrl: string, 
+    userPrompt: string,
+    existingCheongsamImageUrl?: string
+): Promise<string> => {
+    try {
+        const response = await apiRequest<{ imageUrl: string }>('/ai/generate-tryon', {
+            method: 'POST',
+            body: JSON.stringify({ craftName, faceImageUrl, userPrompt, existingCheongsamImageUrl }),
+        });
+        
+        return response.imageUrl;
+    } catch (error) {
+        console.error('Failed to generate try-on image:', error);
+        throw new Error('Failed to generate try-on image. Please try again later.');
     }
 };

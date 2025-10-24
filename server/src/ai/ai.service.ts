@@ -4,6 +4,8 @@ import { getGeminiApiKey } from '../config/gemini.config';
 import { getDoubaoConfig, isDoubaoConfigured } from '../config/doubao.config';
 import { generateDoubaoImage } from './doubao.client';
 import { generateMahjongTileReference } from '../utils/text-to-image.util';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 @Injectable()
 export class AiService {
@@ -26,7 +28,77 @@ export class AiService {
     return lowerName.includes('mahjong') || lowerName.includes('麻雀') || lowerName.includes('麻將');
   }
 
-  async generateCraftImage(craftName: string, userPrompt: string): Promise<{ imageUrl: string }> {
+  /**
+   * Convert an image URL (either base64 data URL or file path) to base64 string
+   */
+  private async imageUrlToBase64(imageUrl: string): Promise<string> {
+    // If it's already a base64 data URL, extract the base64 part
+    if (imageUrl.startsWith('data:')) {
+      return imageUrl.split(',')[1];
+    }
+
+    // If it's a file path (relative or absolute)
+    if (imageUrl.startsWith('/') || imageUrl.startsWith('./')) {
+      // Construct absolute path relative to the public directory
+      const publicDir = path.join(__dirname, '..', '..', '..', 'public');
+      const filePath = path.join(publicDir, imageUrl);
+      
+      console.log('Reading image file from:', filePath);
+      
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`Image file not found: ${filePath}`);
+      }
+
+      const imageBuffer = fs.readFileSync(filePath);
+      console.log('Image file loaded, size:', imageBuffer.length, 'bytes');
+      return imageBuffer.toString('base64');
+    }
+
+    // If it's an HTTP(S) URL, fetch it
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      console.log('Fetching image from URL:', imageUrl);
+      const response = await fetch(imageUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image from ${imageUrl}: ${response.statusText}`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      return buffer.toString('base64');
+    }
+
+    throw new Error(`Invalid image URL format: ${imageUrl}`);
+  }
+
+  /**
+   * Detect MIME type from file extension or data URL
+   */
+  private getMimeType(imageUrl: string): string {
+    if (imageUrl.startsWith('data:')) {
+      const match = imageUrl.match(/^data:(image\/[a-z]+);base64,/);
+      return match ? match[1] : 'image/jpeg';
+    }
+
+    const ext = path.extname(imageUrl).toLowerCase();
+    switch (ext) {
+      case '.png':
+        return 'image/png';
+      case '.jpg':
+      case '.jpeg':
+        return 'image/jpeg';
+      case '.webp':
+        return 'image/webp';
+      case '.gif':
+        return 'image/gif';
+      default:
+        return 'image/jpeg';
+    }
+  }
+
+  async generateCraftImage(
+    craftName: string, 
+    userPrompt: string, 
+    referenceImageUrl?: string
+  ): Promise<{ imageUrl: string }> {
     const aiClient = this.ai;
     try {
       // Check if this is a mahjong craft and if the prompt contains Chinese characters
@@ -91,13 +163,24 @@ export class AiService {
       // Build the prompt array for generateContent API
       const promptParts: any[] = [{ text: fullPrompt }];
       
-      // Add reference image if available (for mahjong)
+      // Add reference image if available (for mahjong or user-provided)
       if (isMahjong && referenceImage) {
         const base64Data = referenceImage.split(',')[1]; // Extract base64 data
         promptParts.push({
           inlineData: {
             mimeType: 'image/png',
             data: base64Data,
+          },
+        });
+      } else if (referenceImageUrl) {
+        // Add user-provided reference image (e.g., cheongsam for pattern draft)
+        console.log('Adding user-provided reference image to prompt');
+        const refBase64 = await this.imageUrlToBase64(referenceImageUrl);
+        const refMimeType = this.getMimeType(referenceImageUrl);
+        promptParts.push({
+          inlineData: {
+            mimeType: refMimeType,
+            data: refBase64,
           },
         });
       }
@@ -124,6 +207,191 @@ export class AiService {
         throw new Error(error.message.includes('Doubao') ? error.message : `Gemini API Error: ${error.message}`);
       }
       throw new Error('An unknown error occurred during image generation.');
+    }
+  }
+
+  /**
+   * Generate a try-on image by creating a full-body model with the reference face,
+   * then combining it with a cheongsam garment.
+   */
+  async generateTryOnImage(
+    craftName: string,
+    faceImageUrl: string,
+    userPrompt: string,
+    existingCheongsamImageUrl?: string
+  ): Promise<{ imageUrl: string }> {
+    const aiClient = this.ai;
+
+    if (!aiClient) {
+      throw new Error('The AI service is not configured on the server.');
+    }
+
+    try {
+      console.log('=== Try-On Image Generation ===');
+      console.log('Craft Name:', craftName);
+      console.log('User Prompt:', userPrompt);
+      console.log('Face Image URL:', faceImageUrl);
+      console.log('Existing Cheongsam Image:', existingCheongsamImageUrl ? 'Yes' : 'No');
+
+      // Step 1: Generate a full-body model with the reference face
+      const faceBase64 = await this.imageUrlToBase64(faceImageUrl);
+      const faceMimeType = this.getMimeType(faceImageUrl);
+      console.log('Face image converted to base64, length:', faceBase64.length, 'MIME type:', faceMimeType);
+
+      const step1Prompt = [
+        { 
+          text: `Using the provided image of a person's face, generate a professional full-body portrait of this exact person. CRITICAL: Preserve the person's facial features EXACTLY as shown in the reference image - including face shape, eyes, nose, mouth, skin tone, and all unique characteristics. 
+
+The person should be:
+- Standing in a graceful, elegant pose suitable for fashion photography
+- Wearing simple, neutral clothing (like a white shirt and neutral pants/skirt) to allow for garment overlay later
+- Barefoot or in simple neutral shoes (these will be replaced)
+- Proper body proportions for an adult
+- Cinematic lighting with soft, natural tones
+- Neutral background (white or light gray)
+- High quality, 4K resolution
+
+Remember: The face must be IDENTICAL to the reference image provided.` 
+        },
+        {
+          inlineData: {
+            mimeType: faceMimeType,
+            data: faceBase64,
+          },
+        },
+      ];
+
+      console.log('Step 1: Generating full-body model with reference face...');
+      const step1Response = await aiClient.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: step1Prompt,
+      });
+
+      let fullBodyImageBase64: string | null = null;
+      if (step1Response.candidates && step1Response.candidates.length > 0) {
+        for (const part of step1Response.candidates[0].content.parts) {
+          if (part.inlineData) {
+            fullBodyImageBase64 = part.inlineData.data;
+            console.log('Step 1: Full-body image generated successfully');
+            break;
+          }
+        }
+      }
+
+      if (!fullBodyImageBase64) {
+        throw new Error('Failed to generate full-body model in step 1');
+      }
+
+      // Step 2: Get or generate cheongsam garment image
+      let cheongsamImageBase64: string | null = null;
+      
+      if (existingCheongsamImageUrl) {
+        // Use existing cheongsam image from concept mode
+        console.log('Step 2: Using existing cheongsam image from concept mode');
+        cheongsamImageBase64 = await this.imageUrlToBase64(existingCheongsamImageUrl);
+        console.log('Step 2: Existing cheongsam image loaded successfully');
+      } else {
+        // Generate new cheongsam garment image
+        console.log('Step 2: Generating cheongsam garment...');
+        const cheongsamPrompt = `Create a professional product photo of an elegant ${craftName}. The cheongsam should feature:
+- Traditional Shanghainese tailoring with a high mandarin collar
+- Hand-bound pankou (Chinese frog) buttons
+- Lustrous silk fabric with subtle floral embroidery
+- Pearl-white or ivory color with beautiful draping
+- Display the garment flat or on a neutral mannequin
+- Clean white background
+- Professional studio lighting that highlights the fabric texture and embroidery details
+${userPrompt ? `\nAdditional design notes: ${userPrompt}` : ''}`;
+
+        const step2Response = await aiClient.models.generateContent({
+          model: 'gemini-2.5-flash-image',
+          contents: [{ text: cheongsamPrompt }],
+        });
+
+        if (step2Response.candidates && step2Response.candidates.length > 0) {
+          for (const part of step2Response.candidates[0].content.parts) {
+            if (part.inlineData) {
+              cheongsamImageBase64 = part.inlineData.data;
+              console.log('Step 2: Cheongsam garment generated successfully');
+              break;
+            }
+          }
+        }
+      }
+
+      if (!cheongsamImageBase64) {
+        throw new Error('Failed to generate cheongsam garment in step 2');
+      }
+
+      // Step 3: Combine the full-body model with the cheongsam
+      console.log('Step 3: Combining model with cheongsam...');
+      const step3Prompt = [
+        {
+          text: `You are given two images:
+1. A full-body photo of a person (the model)
+2. A cheongsam garment
+
+Your task: Create a professional fashion e-commerce photo showing the person wearing the cheongsam. Generate a realistic, full-body shot with these requirements:
+
+CRITICAL FACIAL PRESERVATION:
+- The person's face must be EXACTLY identical to the face in the first image
+- Preserve ALL facial features: eyes, nose, mouth, face shape, skin tone, expression
+- Do not alter, beautify, or change any facial characteristics
+- The face identity must be 100% accurate to the original person
+
+OUTFIT REQUIREMENTS:
+- The person is wearing the cheongsam garment from the second image with perfect fit and draping
+- Add elegant shoes that match and complement the cheongsam style (traditional Chinese shoes, heels, or elegant flats in coordinating colors)
+- Realistic shadows and fabric folds that match the body pose
+- Professional tailoring that looks natural on the person's body
+
+OVERALL QUALITY:
+- Lighting and color tone adjusted to create a cohesive, elegant portrait
+- Elegant standing pose suitable for fashion photography (can be slightly adjusted for grace)
+- Professional studio or neutral background
+- High quality, 4K resolution with cinematic lighting
+- Natural and professional appearance as if photographed for a fashion catalog
+
+Do NOT just return the person's photo - you must show them WEARING the cheongsam garment with matching footwear.`
+        },
+        {
+          inlineData: {
+            mimeType: 'image/jpeg',
+            data: fullBodyImageBase64,
+          },
+        },
+        {
+          inlineData: {
+            mimeType: 'image/jpeg',
+            data: cheongsamImageBase64,
+          },
+        },
+      ];
+
+      const step3Response = await aiClient.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: step3Prompt,
+      });
+
+      if (step3Response.candidates && step3Response.candidates.length > 0) {
+        for (const part of step3Response.candidates[0].content.parts) {
+          if (part.inlineData) {
+            const finalImageBase64 = part.inlineData.data;
+            console.log('Step 3: Try-on image generated successfully');
+            console.log('Final image preview (first 100 chars):', finalImageBase64.substring(0, 100));
+            console.log('================================');
+            return { imageUrl: `data:image/jpeg;base64,${finalImageBase64}` };
+          }
+        }
+      }
+
+      throw new Error('Failed to generate final try-on image in step 3');
+    } catch (error) {
+      console.error('Error in try-on image generation:', error);
+      if (error instanceof Error) {
+        throw new Error(`Try-on generation failed: ${error.message}`);
+      }
+      throw new Error('An unknown error occurred during try-on image generation.');
     }
   }
 }

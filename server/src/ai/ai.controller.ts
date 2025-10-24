@@ -7,8 +7,24 @@ export class AiController {
 
   @Post('generate-image')
   @HttpCode(HttpStatus.OK)
-  async generateImage(@Body() body: { craftName: string; userPrompt: string }) {
-    const { craftName, userPrompt } = body;
-    return this.aiService.generateCraftImage(craftName, userPrompt);
+  async generateImage(@Body() body: { 
+    craftName: string; 
+    userPrompt: string;
+    referenceImageUrl?: string;
+  }) {
+    const { craftName, userPrompt, referenceImageUrl } = body;
+    return this.aiService.generateCraftImage(craftName, userPrompt, referenceImageUrl);
+  }
+
+  @Post('generate-tryon')
+  @HttpCode(HttpStatus.OK)
+  async generateTryOn(@Body() body: { 
+    craftName: string; 
+    faceImageUrl: string; 
+    userPrompt: string;
+    existingCheongsamImageUrl?: string;
+  }) {
+    const { craftName, faceImageUrl, userPrompt, existingCheongsamImageUrl } = body;
+    return this.aiService.generateTryOnImage(craftName, faceImageUrl, userPrompt, existingCheongsamImageUrl);
   }
 }
