@@ -201,7 +201,7 @@ const ArtisanChatroom: React.FC<ArtisanChatroomProps> = ({ thread, product, onCl
       const body = match?.[2]?.trim() ?? trimmed;
       const palette =
         systemClass === 'payment-alert'
-          ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-400 shadow-sm'
+          ? 'bg-gradient-to-br from-emerald-100 via-emerald-50 to-emerald-200 text-emerald-900 border border-emerald-400 shadow-[0_12px_32px_rgba(16,185,129,0.25)]'
           : 'bg-[var(--color-secondary-accent)]/40 text-[var(--color-text-primary)] border border-[var(--color-border)]';
       const secondaryBody = secondary
         ? secondary.text.replace(/<system[^>]*>([\s\S]*)<\/system>/i, (_, inner) => inner?.trim() ?? '').trim()
