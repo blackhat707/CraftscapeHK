@@ -2,7 +2,12 @@
 import type { Craft, Product, Event, Order, Artisan, MessageThread } from '../types';
 import { authService } from './authService';
 
-const API_BASE_URL = '/api';
+<<<<<<< HEAD
+// Use environment variable for API URL (Vercel deployment) or fallback to local proxy
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+=======
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+>>>>>>> db925db (feat: Update code for Replit hosting)
 
 // Helper function for making HTTP requests
 async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {

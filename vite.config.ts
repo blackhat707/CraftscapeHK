@@ -6,8 +6,33 @@ export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
       server: {
-        port: 3000,
+        port: 5000,
         host: '0.0.0.0',
+<<<<<<< HEAD
+        hmr: {
+          clientPort: 443,
+          protocol: 'wss',
+        },
+        proxy: {
+          '/api': {
+            target: 'http://localhost:3001',
+            changeOrigin: true,
+          },
+          '/debug': {
+            target: 'http://localhost:3001',
+            changeOrigin: true,
+          },
+        },
+=======
+        proxy: {
+          '/api': 'http://localhost:3001',
+        },
+        allowedHosts: [
+          'localhost',
+          '127.0.0.1',
+          '80323cac-9cf1-4503-afba-de3082d32504-00-2vq4n4lqc6zbv.sisko.replit.dev'
+        ]
+>>>>>>> db925db (feat: Update code for Replit hosting)
       },
       plugins: [react()],
       define: {

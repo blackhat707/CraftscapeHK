@@ -24,7 +24,7 @@ export async function createNestServer() {
   });
 
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3001', 'null'],
+    origin: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -55,8 +55,14 @@ if (require.main === module) {
     app.useStaticAssets(join(__dirname, '..', '..', 'assets', 'mahjong'), {
       prefix: '/',
     });
+    
+    // CORS configuration with environment variable support
+    const allowedOrigins = process.env.ALLOWED_ORIGINS 
+      ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+      : true;
+    
     app.enableCors({
-      origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3001', 'null'],
+      origin: allowedOrigins,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
       allowedHeaders: ['Content-Type', 'Authorization'],
       credentials: true,
@@ -66,10 +72,10 @@ if (require.main === module) {
       whitelist: true,
     }));
     const port = process.env.PORT || 3001;
-    const host = process.env.HOST || '127.0.0.1';
+    const host = process.env.HOST || '0.0.0.0';
     console.log(`Attempting to start server on http://${host}:${port}`);
     await app.listen(port, host);
-    console.log(`🚀 Backend server is running on: http://localhost:${port}`);
-    console.log('🌐 Frontend dev server (Vite): http://localhost:3000');
+    console.log(`🚀 Backend server is running on: http://${host}:${port}`);
+    console.log(`📋 CORS origins: ${allowedOrigins === true ? 'All origins (development mode)' : allowedOrigins}`);
   })();
 }
