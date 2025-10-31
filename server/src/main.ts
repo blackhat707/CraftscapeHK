@@ -29,7 +29,8 @@ export async function createNestServer() {
       'http://localhost:5173',
       'http://localhost:3001',
       'null',
-      'https://craftscape-hk.vercel.app'
+      'https://craftscape-hk.vercel.app',
+      'https://80323cac-9cf1-4503-afba-de3082d32504-00-2vq4n4lqc6zbv.sisko.replit.dev',
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
