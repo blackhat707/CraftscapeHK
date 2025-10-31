@@ -48,5 +48,5 @@ externalPort = 3000
 
 [deployment]
 deploymentTarget = "vm"
-run = ["bash", "-c", "npm run server:start & npm run preview"]
-build = ["npm", "run", "build:stack"]
+run = ["npm", "run", "start:prod"]
+build = ["npm", "run", "server:build"]

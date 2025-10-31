@@ -12,8 +12,10 @@
     "server:build": "npm --prefix server run build",
     "server:seed": "npm --prefix server run seed",
     "server:start": "npm --prefix server run start",
+    "server:start:prod": "npm --prefix server run start:prod",
     "server:dev": "npm --prefix server run start:dev",
     "build:stack": "npm run build && npm run server:build",
+    "start:prod": "npm run server:start:prod",
     "dev:stack": "concurrently -k --restart-tries 0 \"npm run dev\" \"npm run server:dev\"",
     "dev:stack:watch": "nodemon --config nodemon.env.json"
   },

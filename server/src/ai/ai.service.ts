@@ -6,7 +6,7 @@ import { generateDoubaoImage } from './doubao.client';
 import { generateMahjongTileReference } from '../utils/text-to-image.util';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import type { TranslationOption, TranslationStrategy } from '../../../types';
+import type { TranslationOption, TranslationStrategy } from '../types/translation.types';
 
 @Injectable()
 export class AiService {
