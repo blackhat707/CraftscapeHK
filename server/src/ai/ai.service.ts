@@ -220,6 +220,21 @@ export class AiService {
     userPrompt: string,
     existingCheongsamImageUrl?: string
   ): Promise<{ imageUrl: string }> {
+    // Helper to save base64 image to debug dir
+    const saveDebugImage = (base64: string, filename: string) => {
+      if (process.env.NODE_ENV !== 'development') return;
+      try {
+        const debugDir = path.join(__dirname, '..', '..', 'debug');
+        if (!fs.existsSync(debugDir)) {
+          fs.mkdirSync(debugDir, { recursive: true });
+        }
+        const filePath = path.join(debugDir, filename);
+        fs.writeFileSync(filePath, Buffer.from(base64, 'base64'));
+        console.log(`Saved debug image: ${filePath}`);
+      } catch (err) {
+        console.error('Failed to save debug image', filename, err);
+      }
+    };
     const aiClient = this.ai;
 
     if (!aiClient) {
@@ -237,19 +252,13 @@ export class AiService {
       const faceBase64 = await this.imageUrlToBase64(faceImageUrl);
       const faceMimeType = this.getMimeType(faceImageUrl);
       console.log('Face image converted to base64, length:', faceBase64.length, 'MIME type:', faceMimeType);
+          saveDebugImage(faceBase64, 'step1_face_input.jpg');
 
       const step1Prompt = [
         { 
           text: `Using the provided image of a person's face, generate a professional full-body portrait of this exact person. CRITICAL: Preserve the person's facial features EXACTLY as shown in the reference image - including face shape, eyes, nose, mouth, skin tone, and all unique characteristics. 
 
 The person should be:
-- Standing in a graceful, elegant pose suitable for fashion photography
-- Wearing simple, neutral clothing (like a white shirt and neutral pants/skirt) to allow for garment overlay later
-- Barefoot or in simple neutral shoes (these will be replaced)
-- Proper body proportions for an adult
-- Cinematic lighting with soft, natural tones
-- Neutral background (white or light gray)
-- High quality, 4K resolution
 
 Remember: The face must be IDENTICAL to the reference image provided.` 
         },
@@ -273,6 +282,7 @@ Remember: The face must be IDENTICAL to the reference image provided.`
           if (part.inlineData) {
             fullBodyImageBase64 = part.inlineData.data;
             console.log('Step 1: Full-body image generated successfully');
+                saveDebugImage(fullBodyImageBase64, 'step1_fullbody.jpg');
             break;
           }
         }
@@ -289,18 +299,12 @@ Remember: The face must be IDENTICAL to the reference image provided.`
         // Use existing cheongsam image from concept mode
         console.log('Step 2: Using existing cheongsam image from concept mode');
         cheongsamImageBase64 = await this.imageUrlToBase64(existingCheongsamImageUrl);
+            saveDebugImage(cheongsamImageBase64, 'step2_cheongsam_input.jpg');
         console.log('Step 2: Existing cheongsam image loaded successfully');
       } else {
         // Generate new cheongsam garment image
         console.log('Step 2: Generating cheongsam garment...');
         const cheongsamPrompt = `Create a professional product photo of an elegant ${craftName}. The cheongsam should feature:
-- Traditional Shanghainese tailoring with a high mandarin collar
-- Hand-bound pankou (Chinese frog) buttons
-- Lustrous silk fabric with subtle floral embroidery
-- Pearl-white or ivory color with beautiful draping
-- Display the garment flat or on a neutral mannequin
-- Clean white background
-- Professional studio lighting that highlights the fabric texture and embroidery details
 ${userPrompt ? `\nAdditional design notes: ${userPrompt}` : ''}`;
 
         const step2Response = await aiClient.models.generateContent({
@@ -312,6 +316,7 @@ ${userPrompt ? `\nAdditional design notes: ${userPrompt}` : ''}`;
           for (const part of step2Response.candidates[0].content.parts) {
             if (part.inlineData) {
               cheongsamImageBase64 = part.inlineData.data;
+                  saveDebugImage(cheongsamImageBase64, 'step2_cheongsam_generated.jpg');
               console.log('Step 2: Cheongsam garment generated successfully');
               break;
             }
@@ -334,23 +339,10 @@ ${userPrompt ? `\nAdditional design notes: ${userPrompt}` : ''}`;
 Your task: Create a professional fashion e-commerce photo showing the person wearing the cheongsam. Generate a realistic, full-body shot with these requirements:
 
 CRITICAL FACIAL PRESERVATION:
-- The person's face must be EXACTLY identical to the face in the first image
-- Preserve ALL facial features: eyes, nose, mouth, face shape, skin tone, expression
-- Do not alter, beautify, or change any facial characteristics
-- The face identity must be 100% accurate to the original person
 
 OUTFIT REQUIREMENTS:
-- The person is wearing the cheongsam garment from the second image with perfect fit and draping
-- Add elegant shoes that match and complement the cheongsam style (traditional Chinese shoes, heels, or elegant flats in coordinating colors)
-- Realistic shadows and fabric folds that match the body pose
-- Professional tailoring that looks natural on the person's body
 
 OVERALL QUALITY:
-- Lighting and color tone adjusted to create a cohesive, elegant portrait
-- Elegant standing pose suitable for fashion photography (can be slightly adjusted for grace)
-- Professional studio or neutral background
-- High quality, 4K resolution with cinematic lighting
-- Natural and professional appearance as if photographed for a fashion catalog
 
 Do NOT just return the person's photo - you must show them WEARING the cheongsam garment with matching footwear.`
         },
@@ -377,6 +369,7 @@ Do NOT just return the person's photo - you must show them WEARING the cheongsam
         for (const part of step3Response.candidates[0].content.parts) {
           if (part.inlineData) {
             const finalImageBase64 = part.inlineData.data;
+                saveDebugImage(finalImageBase64, 'step3_final_tryon.jpg');
             console.log('Step 3: Try-on image generated successfully');
             console.log('Final image preview (first 100 chars):', finalImageBase64.substring(0, 100));
             console.log('================================');

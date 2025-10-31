@@ -81,6 +81,8 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
   >(null);
   const [lastConceptPrompt, setLastConceptPrompt] = useState<string>("");
   const faceFileInputRef = useRef<HTMLInputElement | null>(null);
+  const faceCameraInputRef = useRef<HTMLInputElement | null>(null);
+  const [showFaceUploadOptions, setShowFaceUploadOptions] = useState(false);
   const {
     addAiCreation,
     faceProfiles,
@@ -178,8 +180,17 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
   );
 
   const handleTriggerFaceUpload = useCallback(() => {
-    faceFileInputRef.current?.click();
+    setShowFaceUploadOptions(true);
   }, []);
+
+  const handleFaceUploadOption = (option: "camera" | "library") => {
+    setShowFaceUploadOptions(false);
+    if (option === "camera") {
+      faceCameraInputRef.current?.click();
+    } else {
+      faceFileInputRef.current?.click();
+    }
+  };
 
   const handleFaceUpload = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -653,6 +664,32 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
                       ? t("aiStudioFaceUploading")
                       : t("aiStudioFaceUpload")}
                   </button>
+                  {showFaceUploadOptions && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                      <div className="bg-white rounded-xl shadow-lg p-6 w-72 flex flex-col gap-3">
+                        <button
+                          className="w-full py-2 rounded-lg bg-[var(--color-primary-accent)] text-white font-semibold text-base hover:opacity-90"
+                          onClick={() => handleFaceUploadOption("camera")}
+                        >
+                          {language === "zh" ? "拍照" : "Take Photo"}
+                        </button>
+                        <button
+                          className="w-full py-2 rounded-lg bg-[var(--color-surface)] text-[var(--color-primary-accent)] font-semibold text-base border border-[var(--color-primary-accent)] hover:bg-[var(--color-primary-accent)]/10"
+                          onClick={() => handleFaceUploadOption("library")}
+                        >
+                          {language === "zh"
+                            ? "從相簿選擇"
+                            : "Choose from Library"}
+                        </button>
+                        <button
+                          className="w-full py-2 rounded-lg text-[var(--color-text-secondary)] font-medium text-base hover:bg-gray-100"
+                          onClick={() => setShowFaceUploadOptions(false)}
+                        >
+                          {language === "zh" ? "取消" : "Cancel"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   <p className="text-xs text-[var(--color-text-secondary)]">
                     {t("aiStudioBananaModelHint")}
                   </p>
@@ -662,6 +699,14 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
                   ref={faceFileInputRef}
                   type="file"
                   accept="image/*"
+                  className="hidden"
+                  onChange={handleFaceUpload}
+                />
+                <input
+                  ref={faceCameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="user"
                   className="hidden"
                   onChange={handleFaceUpload}
                 />

@@ -392,20 +392,6 @@ export const CHEONGSAM_FACE_PRESETS: FaceProfile[] = [
     createdAt: '2024-01-10T08:00:00.000Z',
   },
   {
-    id: '2',
-    label: { zh: 'LIHKG', en: 'LIHKG' },
-    imageUrl: '/images/faces/face2.jpg',
-    source: 'preset',
-    createdAt: '2024-01-11T12:00:00.000Z',
-  },
-  {
-    id: '3',
-    label: { zh: 'IG', en: 'IG' },
-    imageUrl: '/images/faces/face3.jpg',
-    source: 'preset',
-    createdAt: '2024-01-11T12:00:00.000Z',
-  },
-  {
     id: '4',
     label: { zh: 'LinkedIn', en: 'LinkedIn' },
     imageUrl: '/images/faces/face4.jpeg',
