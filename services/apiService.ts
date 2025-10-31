@@ -2,7 +2,7 @@
 import type { Craft, Product, Event, Order, Artisan, MessageThread } from '../types';
 import { authService } from './authService';
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = '/api';
 
 // Helper function for making HTTP requests
 async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
