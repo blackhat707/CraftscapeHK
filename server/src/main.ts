@@ -64,15 +64,24 @@ if (require.main === module) {
     });
     
     // CORS configuration with environment variable support
-    const allowedOrigins = process.env.ALLOWED_ORIGINS 
+    const allowedOrigins = process.env.ALLOWED_ORIGINS
       ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
-      : true;
-    
+      : [
+          'http://localhost:3000',
+          'http://localhost:5000',
+          'http://localhost:5173',
+          'http://localhost:3001',
+          'https://craftscape-hk.vercel.app',
+          'https://80323cac-9cf1-4503-afba-de3082d32504-00-2vq4n4lqc6zbv.sisko.replit.dev',
+        ];
+
     app.enableCors({
       origin: allowedOrigins,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],
       credentials: true,
+      preflightContinue: false,
+      optionsSuccessStatus: 204,
     });
     app.useGlobalPipes(new ValidationPipe({
       transform: true,
@@ -83,6 +92,6 @@ if (require.main === module) {
     console.log(`Attempting to start server on http://${host}:${port}`);
     await app.listen(port, host);
     console.log(`🚀 Backend server is running on: http://${host}:${port}`);
-    console.log(`📋 CORS origins: ${allowedOrigins === true ? 'All origins (development mode)' : allowedOrigins}`);
+    console.log(`📋 CORS origins:`, allowedOrigins);
   })();
 }
