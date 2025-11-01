@@ -17,7 +17,8 @@
     "build:stack": "npm run build && npm run server:build",
     "start:prod": "npm run server:start:prod",
     "dev:stack": "concurrently -k --restart-tries 0 \"npm run dev\" \"npm run server:dev\"",
-    "dev:stack:watch": "nodemon --config nodemon.env.json"
+    "dev:stack:watch": "nodemon --config nodemon.env.json",
+    "verify:cors": "node verify-cors.cjs"
   },
   "dependencies": {
     "@google/genai": "^1.20.0",

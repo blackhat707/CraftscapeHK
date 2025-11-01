@@ -23,6 +23,7 @@ export async function createNestServer() {
         'http://localhost:3001',
         'https://craftscape-hk.vercel.app',
         'https://80323cac-9cf1-4503-afba-de3082d32504-00-2vq4n4lqc6zbv.sisko.replit.dev',
+        'https://80323cac-9cf1-4503-afba-de3082d32504-00-2vq4n4lqc6zbv.sisko.replit.dev:3001',
       ];
       // Allow requests with no origin (mobile apps, Postman, etc.)
       if (!origin || allowedOrigins.includes(origin)) {
@@ -78,6 +79,7 @@ if (require.main === module) {
           'http://localhost:3001',
           'https://craftscape-hk.vercel.app',
           'https://80323cac-9cf1-4503-afba-de3082d32504-00-2vq4n4lqc6zbv.sisko.replit.dev',
+          'https://80323cac-9cf1-4503-afba-de3082d32504-00-2vq4n4lqc6zbv.sisko.replit.dev:3001',
         ];
 
     app.enableCors({
