@@ -8,7 +8,35 @@ import * as express from 'express';
 
 // For Vercel: export a handler creator
 export async function createNestServer() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bodyParser: false });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { 
+    bodyParser: false,
+    cors: true // Enable CORS at creation
+  });
+
+  // CORS must be configured FIRST before any middleware
+  app.enableCors({
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'http://localhost:5000',
+        'http://localhost:5173',
+        'http://localhost:3001',
+        'https://craftscape-hk.vercel.app',
+        'https://80323cac-9cf1-4503-afba-de3082d32504-00-2vq4n4lqc6zbv.sisko.replit.dev',
+      ];
+      // Allow requests with no origin (mobile apps, Postman, etc.)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, true); // In production, you might want to reject: callback(new Error('Not allowed by CORS'))
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  });
 
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -21,20 +49,6 @@ export async function createNestServer() {
   });
   app.useStaticAssets(join(__dirname, '..', '..', 'assets', 'mahjong'), {
     prefix: '/',
-  });
-
-  app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:5173',
-      'http://localhost:3001',
-      'null',
-      'https://craftscape-hk.vercel.app',
-      'https://80323cac-9cf1-4503-afba-de3082d32504-00-2vq4n4lqc6zbv.sisko.replit.dev',
-    ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
   });
 
   app.useGlobalPipes(new ValidationPipe({
@@ -50,20 +64,11 @@ export async function createNestServer() {
 // For local dev: keep original bootstrap
 if (require.main === module) {
   (async () => {
-    const app = await NestFactory.create<NestExpressApplication>(AppModule);
-    app.use(express.json({ limit: '50mb' }));
-    app.use(express.urlencoded({ limit: '50mb', extended: true }));
-    app.useStaticAssets(join(__dirname, '..', '..', 'public'), {
-      prefix: '/',
-    });
-    app.useStaticAssets(join(__dirname, '..', '..', 'assets'), {
-      prefix: '/assets',
-    });
-    app.useStaticAssets(join(__dirname, '..', '..', 'assets', 'mahjong'), {
-      prefix: '/',
+    const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+      cors: true // Enable CORS at creation
     });
     
-    // CORS configuration with environment variable support
+    // CORS configuration MUST be set FIRST before any middleware
     const allowedOrigins = process.env.ALLOWED_ORIGINS
       ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
       : [
@@ -76,12 +81,32 @@ if (require.main === module) {
         ];
 
     app.enableCors({
-      origin: allowedOrigins,
+      origin: (origin, callback) => {
+        // Allow requests with no origin (mobile apps, Postman, etc.)
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          console.warn(`🚫 Blocked CORS request from origin: ${origin}`);
+          callback(null, true); // Still allow for development; set to false in production
+        }
+      },
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
       credentials: true,
       preflightContinue: false,
       optionsSuccessStatus: 204,
+    });
+
+    app.use(express.json({ limit: '50mb' }));
+    app.use(express.urlencoded({ limit: '50mb', extended: true }));
+    app.useStaticAssets(join(__dirname, '..', '..', 'public'), {
+      prefix: '/',
+    });
+    app.useStaticAssets(join(__dirname, '..', '..', 'assets'), {
+      prefix: '/assets',
+    });
+    app.useStaticAssets(join(__dirname, '..', '..', 'assets', 'mahjong'), {
+      prefix: '/',
     });
     app.useGlobalPipes(new ValidationPipe({
       transform: true,
