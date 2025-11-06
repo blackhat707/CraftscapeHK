@@ -7,6 +7,7 @@ import { MessagesModule } from './messages/messages.module';
 import { DatabaseModule } from './database/database.module';
 import { AiModule } from './ai/ai.module';
 import { DebugModule } from './debug/debug.module';
+import { AdminModule } from './admin/admin.module';
 
 @Controller()
 export class AppController {
@@ -21,6 +22,7 @@ export class AppController {
         events: '/api/events',
         orders: '/api/orders',
         messages: '/api/messages',
+        admin: '/admin/seed (POST)',
         debug: '/debug (development only)'
       }
     };
@@ -37,6 +39,7 @@ export class AppController {
     MessagesModule,
     AiModule,
     DebugModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [],
