@@ -22,6 +22,7 @@ export async function createNestServer() {
         'http://localhost:5173',
         'http://localhost:3001',
         'https://craftscape-hk.vercel.app',
+        'https://craftscape-backend-jekg23xn5a-uc.a.run.app',
         'https://80323cac-9cf1-4503-afba-de3082d32504-00-2vq4n4lqc6zbv.sisko.replit.dev',
         'https://80323cac-9cf1-4503-afba-de3082d32504-00-2vq4n4lqc6zbv.sisko.replit.dev:3001',
       ];
@@ -78,6 +79,7 @@ if (require.main === module) {
           'http://localhost:5173',
           'http://localhost:3001',
           'https://craftscape-hk.vercel.app',
+          'https://craftscape-backend-jekg23xn5a-uc.a.run.app',
           'https://80323cac-9cf1-4503-afba-de3082d32504-00-2vq4n4lqc6zbv.sisko.replit.dev',
           'https://80323cac-9cf1-4503-afba-de3082d32504-00-2vq4n4lqc6zbv.sisko.replit.dev:3001',
         ];

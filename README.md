@@ -1,8 +1,7 @@
 # Craftscape HK (藝守)
 
-<div align="center">
-<img alt="CraftsHK AI Banner" src="https://raw.githubusercontent.com/gracetyy/CraftscapeHK/refs/heads/main/thumbnail.jpg" />
-</div>
+## Live Demo
+**Try our app on [https://craftscape-hk.vercel.app/](https://craftscape-hk.vercel.app/)!**
 
 ## Inspiration  
 Hong Kong’s traditional crafts—such as **hand-carved mahjong tiles, painted porcelain, cheongsam, and neon sign**—are fading due to shrinking markets and an aging artisan community. 
@@ -125,6 +124,12 @@ Do this:
 - 400 INVALID_ARGUMENT with billed-users message: your key isn’t Images-enabled. Use a paid AI Studio key.
 - 401 or 403: wrong key, missing export, or project/org restrictions.
 - Region errors: Images is only in certain regions; AI Studio routes automatically. Vertex requires explicit regions.
+
+## Deployment
+
+### Production Deployment
+- **Frontend**: Deployed on Vercel
+- **Backend**: Deployed on Replit
 
 ## License
 Released under the MIT License.

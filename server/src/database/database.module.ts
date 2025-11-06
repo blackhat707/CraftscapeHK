@@ -29,7 +29,7 @@ const envFilePath = [
         type: 'sqlite',
         database: configService.get('DATABASE_PATH', 'database.sqlite'),
         entities: [Craft, Product, Event, Artisan, Order, MessageThread],
-        synchronize: configService.get('NODE_ENV') !== 'production',
+        synchronize: true, // Auto-create tables (safe for SQLite)
         logging: configService.get('NODE_ENV') === 'development',
       }),
       inject: [ConfigService],
