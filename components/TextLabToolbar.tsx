@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { useLanguage } from "../../contexts/LanguageContext";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const IconButton: React.FC<{
   onClick?: () => void;

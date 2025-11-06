@@ -7,11 +7,11 @@ import type {
   GlyphName,
 } from "../types";
 import { useLanguage } from "../contexts/LanguageContext";
-import { useCanvasState } from "./hooks/useCanvasState";
-import AiDraftModal from "./components/AiDraftModal";
-import Canvas from "./components/Canvas";
-import GlyphLibrary from "./components/GlyphLibrary";
-import Toolbar from "./components/Toolbar";
+import { useCanvasState } from "../hooks/useTextLabCanvasState";
+import AiDraftModal from "../components/TextLabAiDraftModal";
+import Canvas from "../components/TextLabCanvas";
+import GlyphLibrary from "../components/TextLabGlyphLibrary";
+import Toolbar from "../components/TextLabToolbar";
 import { generateDrafts } from "../services/textLabGeminiService";
 import { GLYPH_LIBRARY } from "../constants";
 
@@ -21,11 +21,7 @@ interface TextLabProps {
   onClose: () => void;
 }
 
-const TextLabOriginal: React.FC<TextLabProps> = ({
-  craft,
-  product,
-  onClose,
-}) => {
+const TextLab: React.FC<TextLabProps> = ({ craft, product, onClose }) => {
   const { language } = useLanguage();
 
   const {
@@ -782,4 +778,4 @@ const TextLabOriginal: React.FC<TextLabProps> = ({
   );
 };
 
-export default TextLabOriginal;
+export default TextLab;

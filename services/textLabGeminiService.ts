@@ -145,7 +145,54 @@ const responseSchema = {
     required: ["layouts"]
 };
 
-export const generateDrafts = async (prompt: string): Promise<AiLayout[]> => {
+export const generateDrafts = async (prompt: string, craftName: string = 'Letterpress', mode: 'concept' | 'literal' = 'concept'): Promise<AiLayout[]> => {
+    console.log('=== AI Image Generation Prompt ===');
+    console.log('Craft:', craftName);
+    console.log('Mode:', mode);
+    console.log('Full Model Prompt:');
+    console.log(prompt);
+    console.log('===================================');
+
+    try {
+        // Use backend API instead of calling Gemini directly
+        if (USE_BACKEND_API) {
+            const response = await fetch(`${API_BASE_URL}/api/ai/generate-text-lab-layouts`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    craftName,
+                    userInput: prompt,
+                    mode,
+                }),
+            });
+
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ message: 'Failed to generate layouts' }));
+                console.error('Backend API error:', error);
+                throw new Error(error.message || 'Failed to generate drafts from the AI.');
+            }
+
+            const responseJson = await response.json();
+            
+            if (import.meta.env.MODE !== 'production') {
+                console.log('[Text Lab - Backend Response] Layouts:', responseJson?.layouts?.length || 0);
+            }
+
+            if (!responseJson.layouts || responseJson.layouts.length === 0) {
+                throw new Error('No layouts returned from backend');
+            }
+
+            return responseJson.layouts as AiLayout[];
+        }
+    } catch (error) {
+        console.error("Error calling backend API:", error);
+        console.error(error);
+        throw new Error('Failed to generate drafts from the AI.');
+    }
+
+    // Fallback to mock data if backend fails
     if (!ai) {
         console.warn('Google GenAI not initialized, returning mock data');
         // Return hardcoded samples for demo

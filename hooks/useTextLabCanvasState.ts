@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { CanvasElement, GlyphName } from '../../types';
+import type { CanvasElement, GlyphName } from '../types';
 
 export const useCanvasState = () => {
   const [history, setHistory] = useState<CanvasElement[][]>([[]]);
