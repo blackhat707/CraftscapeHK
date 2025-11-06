@@ -668,17 +668,9 @@ Do NOT just return the person's photo - you must show them WEARING the cheongsam
 
       const result = await aiClient.models.generateContent({
         model: 'gemini-2.0-flash-exp',
-        contents: [
-          {
-            role: 'system',
-            parts: [{ text: systemInstruction }]
-          },
-          {
-            role: 'user',
-            parts: [{ text: userPrompt }]
-          }
-        ],
+        contents: userPrompt,
         config: {
+          systemInstruction,
           responseMimeType: 'application/json',
           responseSchema,
         },
