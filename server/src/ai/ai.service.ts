@@ -538,4 +538,166 @@ Do NOT just return the person's photo - you must show them WEARING the cheongsam
       throw new Error('An unknown error occurred during try-on image generation.');
     }
   }
+
+  async generateTextLabLayouts(craftName: string, userInput: string, mode: string) {
+    try {
+      const apiKey = getGeminiApiKey();
+      if (!apiKey) {
+        throw new Error('Gemini API key not configured');
+      }
+
+      const aiClient = new GoogleGenAI({ apiKey });
+
+      // Glyph library matching frontend
+      const GLYPH_LIBRARY = [
+        { name: '手', glyph: 'shou' },
+        { name: '田', glyph: 'tian' },
+        { name: '水', glyph: 'shui' },
+        { name: '口', glyph: 'kou' },
+        { name: '廿', glyph: 'nian' },
+        { name: '卜', glyph: 'bu' },
+        { name: '山', glyph: 'shan' },
+        { name: '戈', glyph: 'ge' },
+        { name: '人', glyph: 'ren' },
+        { name: '心', glyph: 'xin' },
+        { name: '日', glyph: 'ri' },
+        { name: '尸', glyph: 'shi' },
+        { name: '木', glyph: 'mu' },
+        { name: '火', glyph: 'huo' },
+        { name: '土', glyph: 'tu' },
+        { name: '竹', glyph: 'zhu' },
+        { name: '大', glyph: 'da' },
+        { name: '中', glyph: 'zhong' },
+        { name: '金', glyph: 'jin' },
+        { name: '女', glyph: 'nu' },
+        { name: '月', glyph: 'yue' },
+        { name: '弓', glyph: 'gong' },
+        { name: '一', glyph: 'heng' },
+        { name: '丨', glyph: 'shu' },
+        { name: '丿', glyph: 'pie' },
+        { name: '㇏', glyph: 'na' },
+        { name: '㇔', glyph: 'dian' },
+        { name: '𠃋', glyph: 'ti' },
+      ];
+
+      const glyphNames = GLYPH_LIBRARY.map(g => g.glyph);
+
+      const responseSchema = {
+        type: Type.OBJECT,
+        properties: {
+          layouts: {
+            type: Type.ARRAY,
+            description: "An array of 3 distinct layout proposals for the seal.",
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                description: {
+                  type: Type.STRING,
+                  description: "A brief, artistic description of the visual style.",
+                },
+                elements: {
+                  type: Type.ARRAY,
+                  description: "The array of graphical elements that compose the design.",
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      glyph: {
+                        type: Type.STRING,
+                        enum: glyphNames,
+                        description: "One of the allowed glyph identifiers.",
+                      },
+                      x: {
+                        type: Type.NUMBER,
+                        description: "Horizontal position (0 to 400).",
+                      },
+                      y: {
+                        type: Type.NUMBER,
+                        description: "Vertical position (0 to 400).",
+                      },
+                      scale: {
+                        type: Type.NUMBER,
+                        description: "Size multiplier (0.5 to 2.0).",
+                      },
+                      rotation: {
+                        type: Type.NUMBER,
+                        description: "Rotation in degrees (-180 to 180).",
+                      },
+                      fontWeight: {
+                        type: Type.NUMBER,
+                        description: "Stroke thickness (100 to 900).",
+                      },
+                      isMirror: {
+                        type: Type.BOOLEAN,
+                        description: "Whether to horizontally flip the glyph.",
+                        nullable: true,
+                      },
+                      isOutline: {
+                        type: Type.BOOLEAN,
+                        description: "Whether to render as outline only.",
+                        nullable: true,
+                      },
+                    },
+                    required: ["glyph", "x", "y", "scale", "rotation", "fontWeight"],
+                  },
+                },
+              },
+              required: ["description", "elements"],
+            },
+          },
+        },
+        required: ["layouts"],
+      };
+
+      const systemInstruction = `You are a seal-carving AI that generates creative seal/stamp layouts using ancient Chinese radicals and strokes.`;
+
+      let userPrompt = '';
+      if (mode === 'concept') {
+        userPrompt = `Create 3 distinct artistic seal layouts that visually represent: "${userInput}"`;
+      } else {
+        userPrompt = `Create 3 distinct artistic seal layouts for the Chinese text: "${userInput}"`;
+      }
+
+      userPrompt += `\n\nUse radicals/strokes from: ${GLYPH_LIBRARY.map(g => g.name).join(', ')}`;
+      userPrompt += `\nCanvas: 400x400px. Position elements creatively. Use 5-15 glyphs per layout.`;
+
+      console.log('=== AI Text Lab Generation Prompt ===');
+      console.log('Craft:', craftName);
+      console.log('Mode:', mode);
+      console.log('User Input:', userInput);
+      console.log('=====================================');
+
+      const result = await aiClient.models.generateContent({
+        model: 'gemini-2.0-flash-exp',
+        contents: [
+          {
+            role: 'system',
+            parts: [{ text: systemInstruction }]
+          },
+          {
+            role: 'user',
+            parts: [{ text: userPrompt }]
+          }
+        ],
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema,
+        },
+      });
+
+      if (!result.candidates || result.candidates.length === 0) {
+        throw new Error('No response from Gemini API');
+      }
+
+      const text = result.candidates[0].content.parts[0].text;
+      const jsonText = text.replace(/```json\n?|```\n?/g, '').trim();
+      const responseJson = JSON.parse(jsonText);
+
+      console.log('[Text Lab] Generated layouts:', responseJson?.layouts?.length || 0);
+
+      return responseJson;
+    } catch (error) {
+      console.error('Error generating text lab layouts:', error);
+      throw new Error(`Text lab generation failed: ${error.message}`);
+    }
+  }
 }

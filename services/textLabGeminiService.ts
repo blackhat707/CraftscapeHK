@@ -1,5 +1,9 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
+// Use backend API instead of calling Gemini directly
+const USE_BACKEND_API = true;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
 type GlyphName = 
   | 'shou' | 'tian' | 'shui' | 'kou' | 'nian' | 'bu' | 'shan' | 'ge' | 'ren' | 'xin'
   | 'ri' | 'shi' | 'mu' | 'huo' | 'tu' | 'zhu' | 'da' | 'zhong' | 'jin' | 'nu'

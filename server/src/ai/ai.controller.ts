@@ -27,4 +27,15 @@ export class AiController {
     const { craftName, faceImageUrl, userPrompt, existingCheongsamImageUrl } = body;
     return this.aiService.generateTryOnImage(craftName, faceImageUrl, userPrompt, existingCheongsamImageUrl);
   }
+
+  @Post('generate-text-lab-layouts')
+  @HttpCode(HttpStatus.OK)
+  async generateTextLabLayouts(@Body() body: { 
+    craftName: string; 
+    userInput: string;
+    mode: string;
+  }) {
+    const { craftName, userInput, mode } = body;
+    return this.aiService.generateTextLabLayouts(craftName, userInput, mode);
+  }
 }
