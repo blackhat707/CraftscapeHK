@@ -20,5 +20,6 @@
 - The frontend currently relies on type safety and manual QA. When adding UI logic, include lightweight integration coverage (e.g., Playwright or Vitest) and ensure `npm run build` passes before opening a PR.
 
 ## Commit & Pull Request Guidelines
+- Suggest commit title at the end of each large change, but no need to automatically run the git add and push command.
 - Follow conventional commits observed in history (`refactor:`, `feat:`, `UX:`) and write imperative, present-tense summaries under 72 characters.
 - Each PR should describe scope, testing performed (`npm run build`, `npm run test`, etc.), and link related issues. Attach UI screenshots or recordings whenever you alter user-facing flows and call out localization updates so reviewers can verify both languages.

@@ -2,17 +2,26 @@ import { createCanvas, registerFont } from 'canvas';
 import * as path from 'path';
 
 // Register the Hong Kong Kai font with fallback to Edukai
-const fontPath = path.join(process.cwd(), '..', 'assets', 'mahjong', 'Free-HK-Kai_4700-v1.02.ttf');
-const fallbackFontPath = path.join(process.cwd(), '..', 'assets', 'mahjong', 'edukai-5.0.ttf');
+// Fonts are now in server/assets/mahjong and deployed to /app/assets/mahjong
+const assetsDir = path.join(__dirname, '..', '..', 'assets', 'mahjong');
 
-// Register fonts if available, but skip validation and glyph checks
+const fontPath = path.join(assetsDir, 'Free-HK-Kai_4700-v1.02.ttf');
+const fallbackFontPath = path.join(assetsDir, 'edukai-5.0.ttf');
+
+// Register fonts if available
 try {
   registerFont(fontPath, { family: 'Free HK Kai' });
-} catch {}
+  console.log('✅ Registered Free HK Kai font from:', fontPath);
+} catch (err) {
+  console.warn('⚠️ Failed to register Free HK Kai font:', err.message);
+}
 try {
   registerFont(fallbackFontPath, { family: 'TW-MOE-Std-Kai' });
   registerFont(fallbackFontPath, { family: '教育部標準楷書' });
-} catch {}
+  console.log('✅ Registered fallback font from:', fallbackFontPath);
+} catch (err) {
+  console.warn('⚠️ Failed to register fallback font:', err.message);
+}
 
 const fallbackFontFamilyName = 'TW-MOE-Std-Kai';
 

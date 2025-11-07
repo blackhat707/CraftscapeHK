@@ -272,9 +272,20 @@ Respond strictly as JSON matching the provided schema.`;
         console.log('- Size:', Math.round(referenceImage.length / 1024), 'KB');
         console.log('- Data URL length:', referenceImage.length, 'characters');
         
-        // Enhance the prompt to use the reference image
-        enhancedPrompt = `A hand-carved traditional Hong Kong mahjong tile with Chinese character(s) "${userPrompt}" engraved vertically on it. The tile should be made of ivory-colored material (bone or bamboo), with deep, precise carving showing traditional craftsmanship. Follow the exact text shape and character layout shown in the reference image. The character should be centered and prominent, carved in a traditional style. Focus on intricate carving details, elegant typography, and beautiful lighting that highlights the depth of the engraving.`;
-        console.log('Enhanced mahjong prompt:', enhancedPrompt);
+        // Enhance the prompt to use the reference image with EXPLICIT instructions
+        enhancedPrompt = `A hand-carved traditional Hong Kong mahjong tile with Chinese character(s) engraved vertically on it. 
+
+CRITICAL REQUIREMENTS:
+1. Copy the EXACT Chinese characters shown in the reference image - character by character, stroke by stroke
+2. The characters must be IDENTICAL to those in the reference image: "${chineseOnly}"
+3. Preserve the vertical layout shown in the reference image
+4. The tile should be made of ivory-colored material (bone or bamboo)
+5. Deep, precise carving showing traditional craftsmanship
+6. Characters centered and prominent, carved in traditional style, in red or green color
+7. Beautiful lighting that highlights the depth of the engraving
+
+Reference image shows the correct Chinese characters to engrave. DO NOT change, simplify, or substitute any characters.`;
+        console.log('Enhanced mahjong prompt for Chinese text:', chineseOnly);
       }
 
       const fullPrompt = isMahjong && hasChinesePrompt 
@@ -339,6 +350,17 @@ Respond strictly as JSON matching the provided schema.`;
       const response = await aiClient.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: promptParts,
+        config: isMahjong && referenceImage ? {
+          systemInstruction: `You are an expert at generating realistic images of traditional Hong Kong crafts. 
+When a reference image is provided showing Chinese characters:
+1. You MUST reproduce the EXACT Chinese characters shown in the reference image
+2. Copy each character stroke-by-stroke - do NOT simplify, modify, or substitute characters
+3. Preserve the vertical layout and positioning shown in the reference
+4. The characters are the most critical element - accuracy is paramount
+5. Apply the characters to a hand-carved mahjong tile with ivory-colored material
+
+Remember: Character accuracy from the reference image is MORE IMPORTANT than artistic interpretation.`
+        } : undefined,
       });
 
       // Extract the generated image from the response

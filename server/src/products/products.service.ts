@@ -67,8 +67,20 @@ export class ProductsService {
         console.log('- Size:', Math.round(referenceImage.length / 1024), 'KB');
         console.log('- Data URL length:', referenceImage.length, 'characters');
         
-        // Enhance the prompt to use the reference image
-        enhancedPrompt = `A hand-carved traditional Hong Kong mahjong tile with the Chinese character(s) "${userPrompt}" engraved vertically on it. The tile should be made of ivory-colored material (bone or bamboo), with deep, precise carving showing traditional craftsmanship. The character should be centered and prominent, carved in a traditional style matching the reference image. Focus on intricate carving details, elegant typography, and beautiful lighting that highlights the depth of the engraving.`;
+        // Enhance the prompt with explicit instructions
+        enhancedPrompt = `A hand-carved traditional Hong Kong mahjong tile with Chinese character(s) engraved vertically on it. 
+
+CRITICAL REQUIREMENTS:
+1. Copy the EXACT Chinese characters shown in the reference image - character by character, stroke by stroke
+2. The characters must be IDENTICAL to those in the reference image: "${chineseOnly}"
+3. Preserve the vertical layout shown in the reference image
+4. The tile should be made of ivory-colored material (bone or bamboo)
+5. Deep, precise carving showing traditional craftsmanship
+6. Characters centered and prominent, carved in traditional style
+7. Beautiful lighting that highlights the depth of the engraving
+
+Reference image shows the correct Chinese characters to engrave. DO NOT change, simplify, or substitute any characters.`;
+        console.log('Enhanced mahjong prompt for Chinese text:', chineseOnly);
       }
 
       const fullPrompt = isMahjong && hasChinesePrompt 
@@ -95,29 +107,44 @@ export class ProductsService {
         throw new Error("The AI service is not configured on the server.");
       }
 
-      // Configure image generation with optional reference image
-      const generateConfig: any = {
-        numberOfImages: 1,
-        outputMimeType: 'image/jpeg',
-        aspectRatio: '3:4',
-      };
+      // Build the prompt array for generateContent API
+      const promptParts: any[] = [{ text: fullPrompt }];
+      
+      // Add reference image if available for mahjong
+      if (isMahjong && referenceImage) {
+        const base64Data = referenceImage.split(',')[1]; // Extract base64 data
+        promptParts.push({
+          inlineData: {
+            mimeType: 'image/png',
+            data: base64Data,
+          },
+        });
+      }
 
-      // For mahjong with reference image, include it as a reference
-      const response = await aiClient.models.generateImages({
-        model: 'gemini-2.5-flash-latest',
-        prompt: fullPrompt,
-        ...(isMahjong && referenceImage ? {
-          referenceImages: [{
-            imageBytes: referenceImage.split(',')[1], // Extract base64 data
-            referenceType: 'REFERENCE_TYPE_STYLE',
-          }],
-        } : {}),
-        config: generateConfig,
+      const response = await aiClient.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: promptParts,
+        config: isMahjong && referenceImage ? {
+          systemInstruction: `You are an expert at generating realistic images of traditional Hong Kong crafts. 
+When a reference image is provided showing Chinese characters:
+1. You MUST reproduce the EXACT Chinese characters shown in the reference image
+2. Copy each character stroke-by-stroke - do NOT simplify, modify, or substitute characters
+3. Preserve the vertical layout and positioning shown in the reference
+4. The characters are the most critical element - accuracy is paramount
+5. Apply the characters to a hand-carved mahjong tile with ivory-colored material
+
+Remember: Character accuracy from the reference image is MORE IMPORTANT than artistic interpretation.`
+        } : undefined,
       });
 
-      if (response.generatedImages && response.generatedImages.length > 0) {
-        const base64ImageBytes = response.generatedImages[0].image.imageBytes;
-        return { imageUrl: `data:image/jpeg;base64,${base64ImageBytes}` };
+      // Extract the generated image from the response
+      if (response.candidates && response.candidates.length > 0) {
+        for (const part of response.candidates[0].content.parts) {
+          if (part.inlineData) {
+            const base64ImageBytes = part.inlineData.data;
+            return { imageUrl: `data:image/jpeg;base64,${base64ImageBytes}` };
+          }
+        }
       } else {
         throw new Error('AI failed to generate an image. Please try again later.');
       }
