@@ -1,5 +1,5 @@
 steps:
-  # Build the container image
+  # Build the backend container image
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
@@ -10,16 +10,36 @@ steps:
       - '-f'
       - 'server/Dockerfile'
       - './server'
-    id: 'build-image'
+    id: 'build-backend-image'
 
-  # Push the container image to Container Registry
+  # Build the frontend container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/craftscape-frontend:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/craftscape-frontend:latest'
+      - '-f'
+      - 'Dockerfile'
+      - '.'
+    id: 'build-frontend-image'
+
+  # Push the backend container image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
       - 'gcr.io/$PROJECT_ID/craftscape-backend:$COMMIT_SHA'
-    id: 'push-image'
+    id: 'push-backend-image'
 
-  # Deploy container image to Cloud Run
+  # Push the frontend container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/craftscape-frontend:$COMMIT_SHA'
+    id: 'push-frontend-image'
+
+  # Deploy backend container to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -43,15 +63,39 @@ steps:
       - '300s'
       - '--max-instances'
       - '10'
-    id: 'deploy-cloud-run'
+    id: 'deploy-backend'
 
-  # Wait for deployment to be ready
+  # Deploy frontend container to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'craftscape-frontend'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/craftscape-frontend:$COMMIT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--memory'
+      - '256Mi'
+      - '--cpu'
+      - '1'
+      - '--timeout'
+      - '60s'
+      - '--max-instances'
+      - '10'
+    id: 'deploy-frontend'
+
+  # Wait for backend deployment to be ready
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        echo "Waiting for service to be ready..."
+        echo "Waiting for backend service to be ready..."
         sleep 10
     id: 'wait-for-deployment'
 
@@ -75,6 +119,8 @@ steps:
 images:
   - 'gcr.io/$PROJECT_ID/craftscape-backend:$COMMIT_SHA'
   - 'gcr.io/$PROJECT_ID/craftscape-backend:latest'
+  - 'gcr.io/$PROJECT_ID/craftscape-frontend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/craftscape-frontend:latest'
 
 options:
   machineType: 'E2_HIGHCPU_8'

@@ -128,8 +128,41 @@ Do this:
 ## Deployment
 
 ### Production Deployment
-- **Frontend**: Deployed on Vercel
-- **Backend**: Deployed on Replit
+Both frontend and backend are containerized and deployed to Google Cloud Run:
+
+**Quick Deploy (Both Services)**
+```bash
+npm run deploy:all
+```
+
+**Deploy Individual Services**
+```bash
+# Deploy frontend only
+npm run deploy:frontend
+
+# Deploy backend only
+npm run deploy:backend
+```
+
+**Architecture**
+- Frontend: React + Nginx on Cloud Run (Port 8080)
+- Backend: NestJS API on Cloud Run (Port 8080)
+- Database: SQLite (bundled with backend)
+- Container Registry: Google Container Registry (GCR)
+
+
+#### Local Docker Testing
+```bash
+# Test frontend container
+npm run docker:test:frontend
+
+# Test backend container
+npm run docker:test
+
+# Or manually
+docker build -t craftscape-frontend .
+docker run -p 8080:8080 craftscape-frontend
+```
 
 ## License
 Released under the MIT License.
