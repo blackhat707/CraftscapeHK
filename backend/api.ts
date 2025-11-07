@@ -1,24 +1,15 @@
 // @/backend/api.ts
 
-import { GoogleGenAI } from '@google/genai';
+// Note: This mock backend is no longer used in production.
+// All API calls go through the NestJS backend server.
+// This file is kept for local development and testing only.
+
 import { CRAFTS, PRODUCTS, EVENTS, ORDERS, ARTISANS, MESSAGE_THREADS } from '../constants';
 import type { Craft, Product, Event, Order, Artisan, MessageThread } from '../types';
 
 // --- Helper to simulate network delay ---
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const SIMULATED_DELAY = 500; // 500ms delay
-
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
-if (!GEMINI_API_KEY) {
-  // In a real backend, this would throw an error during startup.
-  // For the mock, we log a warning but allow it to proceed
-  // to avoid crashing the frontend demo if the key isn't set.
-  console.warn('GEMINI_API_KEY environment variable not set. AI features will fail.');
-}
-
-const ai = GEMINI_API_KEY ? new GoogleGenAI({ apiKey: GEMINI_API_KEY }) : undefined;
 
 
 // --- Mock API Endpoints ---
@@ -58,44 +49,10 @@ export const getMessageThreads = async (): Promise<MessageThread[]> => {
 }
 
 /**
- * SECURE BACKEND FUNCTION
- * Generates an image based on a craft's description and a user prompt.
- * This function now lives "on the server" and safely uses the API key.
- * @param craftName - The name of the craft (e.g., "Canton Porcelain").
- * @param userPrompt - The user's creative input.
- * @returns A base64 encoded string of the generated JPEG image.
+ * DEPRECATED: This mock function is no longer used.
+ * AI image generation now happens through the NestJS backend at /api/ai/generate-image
+ * @deprecated Use apiService.generateCraftImageApi() instead
  */
 export const generateCraftImageApi = async (craftName: string, userPrompt: string): Promise<string> => {
-  if (!ai) {
-      throw new Error("The AI service is not configured on the server.");
-  }
-  try {
-    const fullPrompt = `A high-quality, artistic image of a modern interpretation of a traditional Hong Kong craft: ${craftName}. The design is inspired by: "${userPrompt}". Focus on intricate details and beautiful lighting.`;
-    
-    // Simulate a longer delay for AI generation
-    await sleep(2000);
-
-  const response = await ai.models.generateImages({
-        model: 'gemini-2.5-flash-latest',
-        prompt: fullPrompt,
-        config: {
-            numberOfImages: 1,
-            outputMimeType: 'image/jpeg',
-            aspectRatio: '3:4',
-        },
-    });
-
-    if (response.generatedImages && response.generatedImages.length > 0) {
-      const base64ImageBytes = response.generatedImages[0].image.imageBytes;
-      return `data:image/jpeg;base64,${base64ImageBytes}`;
-    } else {
-      throw new Error('AI failed to generate an image. Please try again later.');
-    }
-  } catch (error) {
-    console.error("Error generating image with Gemini:", error);
-    if (error instanceof Error) {
-        throw new Error(`Gemini API Error: ${error.message}`);
-    }
-    throw new Error('An unknown error occurred during image generation.');
-  }
+  throw new Error('This mock function is deprecated. Use the real backend API through apiService.generateCraftImageApi()');
 };
