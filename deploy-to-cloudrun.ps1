@@ -180,7 +180,7 @@ Write-Host ""
 # Step 5: Build and deploy
 Write-Host "🚀 Step 5: Deploying to Cloud Run..." -ForegroundColor Yellow
 
-Set-Location server
+Set-Location backend/server
 
 & $GCLOUD_CMD run deploy $SERVICE_NAME `
   --source . `
@@ -194,7 +194,7 @@ Set-Location server
   --min-instances 0 `
   --max-instances 10
 
-Set-Location ..
+Set-Location ../..
 
 Write-Host "✅ Deployment complete!" -ForegroundColor Green
 Write-Host ""

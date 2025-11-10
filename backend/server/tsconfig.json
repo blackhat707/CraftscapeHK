@@ -12,7 +12,7 @@
     "incremental": true,
     "moduleResolution": "node",
     "paths": {
-      "@shared/*": ["../shared/*"]
+      "@shared/*": ["../../shared/*"]
     },
     "esModuleInterop": true,
     "emitDecoratorMetadata": true,

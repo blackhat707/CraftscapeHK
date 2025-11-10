@@ -8,8 +8,8 @@ steps:
       - '-t'
       - 'gcr.io/$PROJECT_ID/craftscape-backend:latest'
       - '-f'
-      - 'server/Dockerfile'
-      - './server'
+      - 'backend/server/Dockerfile'
+      - './backend/server'
     id: 'build-backend-image'
 
   # Build the frontend container image
@@ -21,8 +21,8 @@ steps:
       - '-t'
       - 'gcr.io/$PROJECT_ID/craftscape-frontend:latest'
       - '-f'
-      - 'Dockerfile'
-      - '.'
+      - 'frontend/Dockerfile'
+      - './frontend'
     id: 'build-frontend-image'
 
   # Push the backend container image to Container Registry

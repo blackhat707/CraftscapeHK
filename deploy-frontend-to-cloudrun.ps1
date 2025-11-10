@@ -41,7 +41,10 @@ Write-Host ""
 Write-Host "Building Docker image..." -ForegroundColor Yellow
 Write-Host "Image: $IMAGE_NAME" -ForegroundColor Cyan
 
+# Change to frontend directory for build
+Push-Location frontend
 docker build -t $IMAGE_NAME .
+Pop-Location
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "✗ Docker build failed!" -ForegroundColor Red
