@@ -508,7 +508,7 @@ const TextLab: React.FC<TextLabProps> = ({ craft, product, onClose }) => {
                     </button>
                     <button
                       onClick={() => setIsImportModalOpen(true)}
-                      className="px-4 py-2 text-sm font-semibold bg-blue-100 text-blue-700 border border-blue-300 hover:bg-blue-200 rounded-md transition-colors"
+                      className="px-4 py-2 text-sm font-semibold bg-[#5E967E]/20 text-[#006564] border border-[#5E967E] hover:bg-[#5E967E]/30 rounded-md transition-colors"
                       title="Debug: Import canvas state from JSON"
                     >
                       📥 {language === "zh" ? "除錯匯入" : "Debug Import"}
@@ -607,7 +607,7 @@ const TextLab: React.FC<TextLabProps> = ({ craft, product, onClose }) => {
                 value={importJson}
                 onChange={(e) => setImportJson(e.target.value)}
                 placeholder={`{\n  "elements": [\n    {\n      "glyph": "gong",\n      "x": 150,\n      "y": 180,\n      "scale": 1.2,\n      "rotation": 0,\n      "fontWeight": 600\n    }\n  ]\n}`}
-                className="w-full h-64 px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-md font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                className="w-full h-64 px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-md font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[#006564] resize-none"
               />
               <div className="flex justify-end gap-2 mt-4">
                 <button
@@ -622,7 +622,7 @@ const TextLab: React.FC<TextLabProps> = ({ craft, product, onClose }) => {
                 <button
                   onClick={handleDebugImport}
                   disabled={!importJson.trim()}
-                  className="px-4 py-2 text-sm font-semibold rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-semibold rounded-md bg-[#006564] text-white hover:bg-[#008A88] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   {language === "zh" ? "匯入" : "Import"}
                 </button>

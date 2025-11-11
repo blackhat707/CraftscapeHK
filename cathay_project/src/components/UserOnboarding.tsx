@@ -118,7 +118,7 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({ onComplete }) => {
                   className="w-full h-full object-cover rounded-full border-4 border-[var(--color-primary-accent)]"
                 />
               ) : (
-                <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-6xl">
+                <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-400 to-[#006564] flex items-center justify-center text-6xl">
                   📸
                 </div>
               )}
@@ -259,7 +259,7 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({ onComplete }) => {
 
             <button
               onClick={handleFinish}
-              className="w-full max-w-md py-4 px-6 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold rounded-xl hover:opacity-90 transition-opacity"
+              className="w-full max-w-md py-4 px-6 bg-gradient-to-r from-purple-500 to-[#006564] text-white font-bold rounded-xl hover:opacity-90 transition-opacity"
             >
               {t('onboardingFinish')}
             </button>

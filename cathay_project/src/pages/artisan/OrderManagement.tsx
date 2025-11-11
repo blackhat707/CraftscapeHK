@@ -8,7 +8,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 const getStatusColor = (status: OrderStatus) => {
     switch (status) {
         case '待處理': return 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400';
-        case '已發貨': return 'bg-blue-500/20 text-blue-700 dark:text-blue-400';
+        case '已發貨': return 'bg-[#006564]/20 text-[#006564] dark:text-[#5E967E]';
         case '已完成': return 'bg-green-500/20 text-green-700 dark:text-green-500';
         case '已取消': return 'bg-red-500/20 text-red-700 dark:text-red-500';
         default: return 'bg-gray-500/20 text-gray-700 dark:text-gray-400';

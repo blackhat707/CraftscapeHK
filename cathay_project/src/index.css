@@ -13,22 +13,23 @@ body {
 
 :root,
 [data-theme="light"] {
-  /* Modern Blue Palette Light Mode */
+  /* Cathay Jade Palette Light Mode */
   --color-bg: #F8F9FA;
   /* Off-white background */
   --color-page-bg: #F3F4F6;
   /* Very light grey for page background */
   --color-surface: #FFFFFF;
   /* Pure white for cards and content areas */
-  --color-primary-accent: #053A6A;
-  /* Primary Dark Blue for headers, navigation, icons */
-  --color-secondary-accent: #085ea7;
-  --color-secondary-accent-light: #52b9fc;
-  /* Secondary Light Blue for buttons, highlights */
-  --color-text-primary: #053A6A;
-  /* Dark blue text for main content */
+  --color-primary-accent: #006564;
+  /* Primary Cathay Jade for headers, navigation, icons */
+  --color-secondary-accent: #006564;
+  /* Secondary Cathay Jade (PANTONE 323) */
+  --color-secondary-accent-light: #5E967E;
+  /* Light Jade (PANTONE 556) for buttons, highlights */
+  --color-text-primary: #006564;
+  /* Cathay Jade text for main content */
   --color-text-secondary: #8a8a8a;
-  --color-text-inactive: #e7f5fe;
+  --color-text-inactive: #B3E5E4;
   --color-text-red: #972226;
   /* Neutral grey for descriptions - darker and less green */
   --color-border: #8a8a8a;
@@ -43,8 +44,8 @@ body {
   --color-divider: #8a8a8a;
 
   /* Button colors */
-  --color-button-bg: #053A6A;
-  /* Secondary Light Blue for main buttons */
+  --color-button-bg: #006564;
+  /* Cathay Jade for main buttons */
   --color-button-text: #FFFFFF;
   --color-button-cta: #972226;
   /* Accent Red for CTA buttons */
@@ -55,24 +56,26 @@ body {
 }
 
 [data-theme="dark"] {
-  /* Modern Blue Palette Dark Mode */
-  --color-bg: #0A1A2E;
-  /* Dark blue background */
-  --color-page-bg: #0A1A2E;
-  --color-surface: #16213E;
-  /* Slightly lighter dark blue for cards */
-  --color-primary-accent: #3178AC;
-  /* Light blue for headers, navigation in dark mode */
-  --color-secondary-accent: #053A6A;
-  /* Dark blue for secondary elements */
+  /* Cathay Jade Palette Dark Mode */
+  --color-bg: #001A19;
+  /* Dark jade background */
+  --color-page-bg: #001A19;
+  --color-surface: #003332;
+  /* Slightly lighter dark jade for cards */
+  --color-primary-accent: #5E967E;
+  /* Light Jade (PANTONE 556) for headers, navigation in dark mode */
+  --color-secondary-accent: #006564;
+  /* Cathay Jade (PANTONE 323) for secondary elements */
+  --color-secondary-accent-light: #5E967E;
+  /* Light Jade (PANTONE 556) for buttons, highlights */
   --color-text-primary: #FFFFFF;
   /* White text for main content */
-  --color-text-secondary: #e7f5fe;
-  --color-text-inactive: #e7f5fe;
+  --color-text-secondary: #5E967E;
+  --color-text-inactive: #5E967E;
   --color-text-red: #af2c31;
-  /* Light blue-grey for better contrast on dark backgrounds */
-  --color-border: #2A3B5C;
-  /* Dark blue-grey for borders */
+  /* Light Jade for better contrast on dark backgrounds */
+  --color-border: #004D4C;
+  /* Dark jade-grey for borders */
   --color-success: #5A8B73;
   --color-error: #972226;
   /* Accent Red for error messages */
@@ -80,28 +83,28 @@ body {
   /* Accent Red for highlights and decorative elements */
   --color-accent-red-light: rgba(226, 57, 64, 0.5);
   /* Light accent red at 30% opacity for subtle borders */
-  --color-divider: #2A3B5C;
+  --color-divider: #004D4C;
 
   /* Button colors */
-  --color-button-bg: #053A6A;
-  /* Light blue for main buttons */
+  --color-button-bg: #006564;
+  /* Cathay Jade for main buttons */
   --color-button-text: #FFFFFF;
   --color-button-cta: #972226;
   /* Accent Red for CTA buttons */
 
   /* Navigation */
-  --color-nav-bg: rgba(10, 26, 46, 0.8);
-  --color-nav-border: rgba(42, 59, 92, 0.3);
+  --color-nav-bg: rgba(0, 26, 25, 0.8);
+  --color-nav-border: rgba(0, 77, 76, 0.3);
 }
 
 .ios-shadow {
-  /* Soft bluish shadows for light mode */
-  box-shadow: 0px 2px 8px rgba(5, 58, 106, 0.08), 0px 4px 16px rgba(5, 58, 106, 0.12);
+  /* Soft jade shadows for light mode */
+  box-shadow: 0px 2px 8px rgba(0, 101, 100, 0.08), 0px 4px 16px rgba(0, 101, 100, 0.12);
 }
 
 [data-theme="dark"] .ios-shadow {
-  /* Soft bluish shadows for dark mode */
-  box-shadow: 0px 2px 8px rgba(5, 58, 106, 0.15), 0px 4px 16px rgba(5, 58, 106, 0.25);
+  /* Soft jade shadows for dark mode */
+  box-shadow: 0px 2px 8px rgba(0, 101, 100, 0.15), 0px 4px 16px rgba(0, 101, 100, 0.25);
 }
 
 /* Typography improvements */
@@ -122,11 +125,11 @@ body {
 
 .museum-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0px 4px 16px rgba(5, 58, 106, 0.15);
+  box-shadow: 0px 4px 16px rgba(0, 101, 100, 0.15);
 }
 
 [data-theme="dark"] .museum-card:hover {
-  box-shadow: 0px 4px 16px rgba(5, 58, 106, 0.25);
+  box-shadow: 0px 4px 16px rgba(0, 101, 100, 0.25);
 }
 
 /* Navigation styling */

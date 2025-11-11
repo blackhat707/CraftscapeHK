@@ -50,7 +50,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onClose, onConta
               </p>
               <button
                 onClick={onAiGen}
-                className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold py-3 px-4 rounded-lg transition-transform duration-300 hover:scale-105"
+                className="w-full bg-gradient-to-r from-purple-500 to-[#006564] text-white font-bold py-3 px-4 rounded-lg transition-transform duration-300 hover:scale-105"
               >
                 {language === 'zh' ? '開始 AI 設計' : 'Start AI Design'}
               </button>

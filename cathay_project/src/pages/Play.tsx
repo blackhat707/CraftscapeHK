@@ -77,7 +77,7 @@ const Play: React.FC = () => {
                             <div className="space-y-3">
                                 <button
                                     onClick={handlePlayNowIOS}
-                                    className="w-full bg-gradient-to-r from-[var(--color-primary-accent)] to-[var(--color-secondary-accent)] hover:from-[#042A4F] hover:to-[#053A6A] text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 relative flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                                    className="w-full bg-gradient-to-r from-[var(--color-primary-accent)] to-[var(--color-secondary-accent)] hover:from-[#004D4C] hover:to-[#006564] text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 relative flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
                                 >
                                     <div className="absolute left-5 w-7 h-7 bg-white/20 rounded-full flex items-center justify-center">
                                         <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
