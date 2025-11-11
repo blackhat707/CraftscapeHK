@@ -6,7 +6,7 @@ import React, {
   useRef,
 } from "react";
 import { AnimatePresence, motion, PanInfo } from "framer-motion";
-import type { Craft } from '@shared/types";
+import type { Craft } from "@shared/types";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAppContext } from "../contexts/AppContext";
 

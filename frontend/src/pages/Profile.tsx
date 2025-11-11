@@ -3,7 +3,7 @@ import { useAppContext } from "../contexts/AppContext";
 import { getCrafts } from "../services/apiService";
 import ThemeToggle from "../components/ThemeToggle";
 import { motion } from "framer-motion";
-import type { Craft } from '@shared/types";
+import type { Craft } from "@shared/types";
 import Spinner from "../components/Spinner";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useTheme } from "../contexts/ThemeContext";

@@ -1,5 +1,5 @@
 import React from "react";
-import { ArtisanTab } from '@shared/enums";
+import { ArtisanTab } from "@shared/enums";
 import { useLanguage } from "../contexts/LanguageContext";
 
 const NavItem: React.FC<{

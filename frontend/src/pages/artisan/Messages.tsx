@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { getMessageThreads } from '../../services/apiService';
-import type { MessageThread } from '../../types';
-import Spinner from '../../components/Spinner';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { getMessageThreads } from '@/services/apiService';
+import type { MessageThread } from '@shared/types';
+import Spinner from '@/components/Spinner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const stripMarkup = (value: string): { text: string; hadImage: boolean } => {
     const imageRegex = /<image[^>]*\/>/g;

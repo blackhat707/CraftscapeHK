@@ -1,6 +1,6 @@
 import React from 'react';
-import ThemeToggle from '../../components/ThemeToggle';
-import { useLanguage } from '../../contexts/LanguageContext';
+import ThemeToggle from '@/components/ThemeToggle';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ArtisanSettingsProps {
     onToggleArtisanMode: () => void;

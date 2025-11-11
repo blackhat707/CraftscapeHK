@@ -52,7 +52,7 @@ async function fallbackToMockData<T>(endpoint: string): Promise<T> {
     console.warn(`Falling back to mock data for ${endpoint}`);
     
     // Dynamic import to avoid circular dependencies
-    const { CRAFTS, PRODUCTS, EVENTS, ORDERS, ARTISANS, MESSAGE_THREADS } = await import('../constants');
+    const { CRAFTS, PRODUCTS, EVENTS, ORDERS, ARTISANS, MESSAGE_THREADS } = await import('@shared/constants');
     
     if (endpoint === '/crafts') return CRAFTS as T;
     if (endpoint === '/products') return PRODUCTS as T;
@@ -89,7 +89,7 @@ export const getMessageThreads = async (): Promise<MessageThread[]> => {
     const threads = await apiRequest<MessageThread[]>('/messages');
 
     try {
-        const { MESSAGE_THREADS } = await import('../constants');
+        const { MESSAGE_THREADS } = await import('@shared/constants');
         const enrichedMap = new Map(MESSAGE_THREADS.map(thread => [thread.id, thread]));
 
         return threads.map(thread => {

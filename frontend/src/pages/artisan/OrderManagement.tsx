@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { getOrders } from '../../services/apiService';
-import type { Order, OrderStatus } from '../../types';
-import Spinner from '../../components/Spinner';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { getOrders } from '@/services/apiService';
+import type { Order, OrderStatus } from '@shared/types';
+import Spinner from '@/components/Spinner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const getStatusColor = (status: OrderStatus) => {
     switch (status) {

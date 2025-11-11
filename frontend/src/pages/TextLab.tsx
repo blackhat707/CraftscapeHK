@@ -5,7 +5,7 @@ import type {
   AiLayout,
   CanvasElement,
   GlyphName,
-} from '@shared/types";
+} from "@shared/types";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useCanvasState } from "../hooks/useTextLabCanvasState";
 import AiDraftModal from "../components/TextLabAiDraftModal";
@@ -13,7 +13,7 @@ import Canvas from "../components/TextLabCanvas";
 import GlyphLibrary from "../components/TextLabGlyphLibrary";
 import Toolbar from "../components/TextLabToolbar";
 import { generateDrafts } from "../services/textLabGeminiService";
-import { GLYPH_LIBRARY } from '@shared/constants";
+import { GLYPH_LIBRARY } from "@shared/constants";
 
 interface TextLabProps {
   craft?: Craft;

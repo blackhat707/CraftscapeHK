@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
-import { GLYPH_LIBRARY } from '@shared/constants";
-import type { GlyphName } from '@shared/types";
+import { GLYPH_LIBRARY } from "@shared/constants";
+import type { GlyphName } from "@shared/types";
 import { useLanguage } from "../contexts/LanguageContext";
 
 const DraggableGlyph: React.FC<{

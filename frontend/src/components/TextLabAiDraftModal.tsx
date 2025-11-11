@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
-import type { AiLayout } from '@shared/types";
-import { GLYPH_LIBRARY } from '@shared/constants";
+import type { AiLayout } from "@shared/types";
+import { GLYPH_LIBRARY } from "@shared/constants";
 
 interface AiDraftModalProps {
   drafts: AiLayout[];

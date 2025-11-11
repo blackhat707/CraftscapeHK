@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useRef,
 } from "react";
-import type { Craft, TranslationOption, FaceProfile } from '@shared/types";
+import type { Craft, TranslationOption, FaceProfile } from "@shared/types";
 import { motion } from "framer-motion";
 import { useAppContext } from "../contexts/AppContext";
 import {

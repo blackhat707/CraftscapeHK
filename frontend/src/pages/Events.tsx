@@ -1,7 +1,7 @@
 import React, { useState, useMemo, FC, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { getEvents } from "../services/apiService";
-import type { Event } from '@shared/types";
+import type { Event } from "@shared/types";
 import Spinner from "../components/Spinner";
 import { useLanguage } from "../contexts/LanguageContext";
 

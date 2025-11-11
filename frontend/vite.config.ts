@@ -38,7 +38,16 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': path.resolve(__dirname, './src'),
         '@shared': path.resolve(__dirname, '../shared'),
-      }
+        '@shared/types': path.resolve(__dirname, '../shared/types'),
+        '@shared/constants': path.resolve(__dirname, '../shared/constants'),
+        '@shared/enums': path.resolve(__dirname, '../shared/enums'),
+      },
+      // Prefer TypeScript source files over compiled JS
+      extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+    },
+    // Optimize dependencies to handle shared TypeScript files
+    optimizeDeps: {
+      include: ['@shared/constants', '@shared/types', '@shared/enums'],
     }
   };
 });

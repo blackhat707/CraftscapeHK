@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback } from "react";
-import type { CanvasElement, GlyphName } from '@shared/types";
+import type { CanvasElement, GlyphName } from "@shared/types";
 
 interface CanvasProps {
   elements: CanvasElement[];

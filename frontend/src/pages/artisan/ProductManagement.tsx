@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { getProducts } from '../../services/apiService';
-import { Product } from '../../types';
-import Spinner from '../../components/Spinner';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { getProducts } from '@/services/apiService';
+import { Product } from '@shared/types';
+import Spinner from '@/components/Spinner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const ARTISAN_NAME = "王師傅"; // Hardcoded for this demo
 

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { getOrders, getMessageThreads } from '../../services/apiService';
-import { ArtisanTab } from '../../enums';
-import type { Order, MessageThread } from '../../types';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { getOrders, getMessageThreads } from '@/services/apiService';
+import { ArtisanTab } from '@shared/enums';
+import type { Order, MessageThread } from '@shared/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface StatCardProps {
     title: string;

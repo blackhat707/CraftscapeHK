@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import type { MessageThread, Product, ChatMessage } from '@shared/types";
+import type { MessageThread, Product, ChatMessage } from "@shared/types";
 import { useLanguage } from "../contexts/LanguageContext";
 
 interface ArtisanChatroomProps {
