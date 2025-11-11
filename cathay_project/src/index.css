@@ -28,9 +28,9 @@ body {
   /* Light Jade (PANTONE 556) for buttons, highlights */
   --color-text-primary: #006564;
   /* Cathay Jade text for main content */
-  --color-text-secondary: #8a8a8a;
+  --color-text-secondary: #C6C2C1;
   --color-text-inactive: #B3E5E4;
-  --color-text-red: #972226;
+  --color-text-black: #000000;
   /* Neutral grey for descriptions - darker and less green */
   --color-border: #8a8a8a;
   /* Neutral grey for borders - darker and less green */
@@ -72,7 +72,7 @@ body {
   /* White text for main content */
   --color-text-secondary: #5E967E;
   --color-text-inactive: #5E967E;
-  --color-text-red: #af2c31;
+  --color-text-black: #C1B49A;
   /* Light Jade for better contrast on dark backgrounds */
   --color-border: #004D4C;
   /* Dark jade-grey for borders */

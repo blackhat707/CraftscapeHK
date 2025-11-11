@@ -299,7 +299,7 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
                       color:
                         theme === "dark"
                           ? "var(--color-text-secondary)"
-                          : "var(--color-text-red)",
+                          : "var(--color-text-black)",
                     }
                   : undefined
               }
@@ -325,7 +325,7 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
                       color:
                         theme === "dark"
                           ? "var(--color-text-secondary)"
-                          : "var(--color-text-red)",
+                          : "var(--color-text-black)",
                     }
                   : undefined
               }
@@ -361,7 +361,7 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
                         color:
                           theme === "dark"
                             ? "var(--color-text-secondary)"
-                            : "var(--color-text-red)",
+                            : "var(--color-text-black)",
                       }
                     : undefined
                 }

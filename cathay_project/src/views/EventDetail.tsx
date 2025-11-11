@@ -35,20 +35,20 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onClose }) => {
       </header>
       
       <div className="p-6 space-y-6 text-[var(--color-text-primary)]">
-        <section className="bg-[var(--color-surface)] p-4 rounded-2xl border border-[var(--color-text-red)] ios-shadow">
+        <section className="bg-[var(--color-surface)] p-4 rounded-2xl border border-[var(--color-text-black)] ios-shadow">
             <div className="flex items-center space-x-4">
                 <div className="p-3 rounded-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[var(--color-text-red)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[var(--color-text-black)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 </div>
                 <div>
                     <h3 className="font-semibold text-[17px]">{event.date}</h3>
                     <p className="text-sm text-[var(--color-text-secondary)]">{event.time[language]}</p>
                 </div>
             </div>
-            <div className="border-t border-[var(--color-text-red)] my-3"></div>
+            <div className="border-t border-[var(--color-text-black)] my-3"></div>
             <div className="flex items-center space-x-4">
                 <div className="p-3 rounded-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[var(--color-text-red)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[var(--color-text-black)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 </div>
                 <div>
                     <h3 className="font-semibold text-[17px]">{event.location[language]}</h3>
