@@ -8,13 +8,11 @@ import React, {
 import type { Craft, TranslationOption, FaceProfile } from "../types/types";
 import { motion } from "framer-motion";
 import { useAppContext } from "../contexts/AppContext";
-// TODO: Change to Convex
-// import {
-//   generateCraftImage,
-//   generateTryOnImage,
-// } from "../services/geminiService";
-// TODO: Change to Convex
-// import { getMahjongTranslationSuggestions } from "../services/translationService";
+import {
+  generateCraftImage,
+  generateTryOnImage,
+} from "../services/geminiService";
+import { getMahjongTranslationSuggestions } from "../services/translationService";
 import { useLanguage } from "../contexts/LanguageContext";
 
 interface AiStudioProps {
@@ -214,13 +212,12 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
         }
         const label =
           file.name.replace(/\.[^/.]+$/, "") || t("aiStudioUploadedFaceLabel");
-        // TODO: Change to Convex
-        // const newId = addFaceProfile({
-        //   label,
-        //   imageUrl,
-        //   source: "upload",
-        // });
-        // setSelectedFaceId(newId);
+        const newId = addFaceProfile({
+          label: { zh: label, en: label },
+          imageUrl,
+          source: "upload",
+        });
+        setSelectedFaceId(newId);
         setIsFaceUploading(false);
         event.target.value = "";
       };
@@ -253,9 +250,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
         setIsTranslating(true);
         setTranslationError(null);
         try {
-          // TODO: Change to Convex
-          // const options = await getMahjongTranslationSuggestions(trimmedPrompt);
-          const options: TranslationOption[] = [];
+          const options = await getMahjongTranslationSuggestions(trimmedPrompt);
           if (!options.length) {
             setTranslationError(t("aiStudioTranslationNoResult"));
           } else {
@@ -375,18 +370,14 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
           !lastConceptCheongsamImage.includes("/presets/"); // Don't reuse hardcoded images
 
         // Use the new try-on service for all other try-on requests
-        // TODO: Change to Convex
-        // imageUrl = await generateTryOnImage(
-        //   craft.name[language],
-        //   selectedFace.imageUrl,
-        //   trimmedPrompt,
-        //   canReuseConceptImage ? lastConceptCheongsamImage : undefined
-        // );
-        imageUrl = "https://placehold.co/600x400";
+        imageUrl = await generateTryOnImage(
+          craft.name[language],
+          selectedFace.imageUrl,
+          trimmedPrompt,
+          canReuseConceptImage ? lastConceptCheongsamImage : undefined
+        );
       } else {
-        // TODO: Change to Convex
-        // imageUrl = await generateCraftImage(craft.name[language], modelPrompt);
-        imageUrl = "https://placehold.co/600x400";
+        imageUrl = await generateCraftImage(craft.name[language], modelPrompt);
 
         // Save concept cheongsam image for potential reuse in try-on mode
         if (isCheongsamCraft && !isTryOnMode) {
@@ -454,13 +445,11 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
               "Use the attached reference image as a visual guide for the pattern details.",
               "Render the draft as a flat scanned sheet with light paper texture, clear inked annotations, and no extra objects.",
             ].join("\n");
-            // TODO: Change to Convex
-            // const generatedPattern = await generateCraftImage(
-            //   `${craft.name[language]} pattern draft`,
-            //   patternPrompt,
-            //   imageUrl // Pass the generated cheongsam image as reference
-            // );
-            const generatedPattern = "https://placehold.co/600x400";
+            const generatedPattern = await generateCraftImage(
+              `${craft.name[language]} pattern draft`,
+              patternPrompt,
+              imageUrl // Pass the generated cheongsam image as reference
+            );
             setPatternDraftImage(generatedPattern);
             setPatternDraftImageFit("contain");
             setPatternDraftFailed(false);
@@ -486,8 +475,6 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
     craft,
     language,
     addAiCreation,
-    // TODO: Change to Convex
-    // getMahjongTranslationSuggestions,
     isTryOnMode,
     isCheongsamCraft,
     selectedFace,

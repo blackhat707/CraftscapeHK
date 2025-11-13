@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { useAppContext } from "../contexts/AppContext";
-// TODO: Change to Convex
-// import { getCrafts } from "../services/apiService";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import ThemeToggle from "../components/ThemeToggle";
 import { motion } from "framer-motion";
 import type { Craft } from "../types/types";
@@ -56,8 +56,6 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
   const { language, setLanguage, t } = useLanguage();
   const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState<ProfileTab>("favorites");
-  const [allCrafts, setAllCrafts] = useState<Craft[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [faceUploadError, setFaceUploadError] = useState<string | null>(null);
   const [isFaceUploading, setIsFaceUploading] = useState(false);
   const faceUploadInputRef = useRef<HTMLInputElement | null>(null);
@@ -66,17 +64,22 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  useEffect(() => {
-    if (activeTab === "favorites") {
-      setIsLoading(true);
-      // TODO: Change to Convex
-      // getCrafts().then((data) => {
-      const data: Craft[] = [];
-      setAllCrafts(data);
-      setIsLoading(false);
-      // });
-    }
-  }, [activeTab]);
+  // Use Convex query to fetch crafts when needed
+  const convexCrafts = useQuery(api.data.getCrafts);
+  const isLoading = convexCrafts === undefined;
+  
+  // Map Convex data to frontend types
+  const allCrafts = convexCrafts?.map(craft => ({
+    id: craft.craftId,
+    name: craft.name,
+    artisan: craft.artisan,
+    short_description: craft.short_description,
+    full_description: craft.full_description,
+    images: craft.images,
+    history: craft.history,
+    story: craft.story,
+    category: craft.category,
+  })) ?? [];
 
   const favoriteCrafts = allCrafts.filter((craft) => favorites.has(craft.id));
   const tabs = [

@@ -1,9 +1,9 @@
 
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-// TODO: Change to Convex
-// import { getProducts } from '../services/apiService';
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { Product } from '../types/types';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -52,22 +52,25 @@ interface MarketplaceProps {
 }
 
 const Marketplace: React.FC<MarketplaceProps> = ({ onSelectProduct }) => {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const { language, t } = useLanguage();
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setIsLoading(true);
-            // TODO: Change to Convex
-            // const data = await getProducts();
-            const data: Product[] = [];
-            setProducts(data);
-            setIsLoading(false);
-        };
-        fetchData();
-    }, []);
+    // Use Convex query to fetch products
+    const convexProducts = useQuery(api.data.getProducts);
+    const isLoading = convexProducts === undefined;
+    
+    // Map Convex data to frontend types
+    const products = convexProducts?.map(product => ({
+        id: product.productId,
+        name: product.name,
+        price: product.price,
+        priceDisplay: product.priceDisplay,
+        priceSubDisplay: product.priceSubDisplay,
+        image: product.image,
+        artisan: product.artisan,
+        full_description: product.full_description,
+        category: product.category,
+    })) ?? [];
 
     const filteredProducts = useMemo(() => {
         if (!products) return [];

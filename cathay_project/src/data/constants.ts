@@ -1,4 +1,4 @@
-import type { Craft, Event, Product, Artisan, Order, MessageThread, GlyphName, FaceProfile } from './types';
+import type { Craft, Event, Product, Artisan, Order, MessageThread, GlyphName, FaceProfile } from '../types/types';
 
 export const CRAFTS: Craft[] = [
   {

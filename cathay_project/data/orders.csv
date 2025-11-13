@@ -1,0 +1,6 @@
+"id","customerName","productId","quantity","total","date","status"
+"QIPAO-2401","梁小姐","12","1","13800","","待處理"
+"QIPAO-2402","Amelia Collins","13","1","10200","","已發貨"
+"QIPAO-2403","王太太","4","1","7200","","已完成"
+"QIPAO-2404","Olivia Martinez","14","1","7600","","已取消"
+"QIPAO-2405","Isabelle Dubois","13","2","19600","","已完成"

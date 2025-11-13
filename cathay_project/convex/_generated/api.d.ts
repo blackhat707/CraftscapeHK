@@ -9,7 +9,9 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as data from "../data.js";
 import type * as http from "../http.js";
+import type * as insertData from "../insertData.js";
 import type * as myFunctions from "../myFunctions.js";
 
 import type {
@@ -20,7 +22,9 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  data: typeof data;
   http: typeof http;
+  insertData: typeof insertData;
   myFunctions: typeof myFunctions;
 }>;
 

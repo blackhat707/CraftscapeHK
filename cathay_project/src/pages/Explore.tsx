@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-// TODO: Change to Convex
-// import { getCrafts } from '../services/apiService';
+import React, { useState } from 'react';
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import type { Craft } from '../types/types';
 import { useLanguage } from '../contexts/LanguageContext';
 import Spinner from '../components/Spinner';
@@ -12,28 +12,25 @@ interface ExploreProps {
 }
 
 const Explore: React.FC<ExploreProps> = ({ onShowDetails }) => {
-    const [crafts, setCrafts] = useState<Craft[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [activeIndex, setActiveIndex] = useState(0);
     const { t, language } = useLanguage();
     
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setIsLoading(true);
-                // TODO: Change to Convex
-                // const data = await getCrafts();
-                const data: Craft[] = [];
-                setCrafts(data);
-            } catch (error) {
-                console.error('Error fetching crafts:', error);
-                setCrafts([]);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchData();
-    }, []);
+    // Use Convex query to fetch crafts
+    const convexCrafts = useQuery(api.data.getCrafts);
+    const isLoading = convexCrafts === undefined;
+    
+    // Map Convex data to frontend types
+    const crafts = convexCrafts?.map(craft => ({
+        id: craft.craftId,
+        name: craft.name,
+        artisan: craft.artisan,
+        short_description: craft.short_description,
+        full_description: craft.full_description,
+        images: craft.images,
+        history: craft.history,
+        story: craft.story,
+        category: craft.category,
+    })) ?? [];
 
     if (isLoading) {
         return <Spinner text={t('spinnerExplore')} />;

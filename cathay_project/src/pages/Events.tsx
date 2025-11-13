@@ -1,7 +1,7 @@
-import React, { useState, useMemo, FC, useEffect } from "react";
+import React, { useState, useMemo, FC } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-// TODO: Change to Convex
-// import { getEvents } from "../services/apiService";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import type { Event } from "../types/types";
 import Spinner from "../components/Spinner";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -23,7 +23,6 @@ const categoryFilters = [
   "typeTalk",
 ];
 
-type CategoryFilterKey = (typeof categoryFilters)[number];
 type DateFilterKey = (typeof dateFilters)[number];
 
 const FilterButton: FC<{
@@ -226,8 +225,6 @@ interface EventsProps {
 }
 
 const Events: React.FC<EventsProps> = ({ onSelectEvent }) => {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [selectedDateFilter, setSelectedDateFilter] = useState<DateFilterKey>(
     dateFilters[0]
   );
@@ -239,6 +236,27 @@ const Events: React.FC<EventsProps> = ({ onSelectEvent }) => {
   );
   const { t } = useLanguage();
 
+  // Use Convex query to fetch events
+  const convexEvents = useQuery(api.data.getEvents);
+  const isLoading = convexEvents === undefined;
+  
+  // Map Convex data to frontend types
+  const events = convexEvents?.map(event => ({
+    id: event.eventId,
+    title: event.title,
+    date: event.date,
+    time: event.time,
+    location: event.location,
+    description: event.description,
+    organizer: event.organizer,
+    organizer_icon: event.organizer_icon,
+    image: event.image,
+    region: event.region,
+    type: event.type,
+    isFeatured: event.isFeatured,
+    url: event.url,
+  })) ?? [];
+
   const categoryTranslationMap = {
     港島: "regionHK",
     九龍: "regionKLN",
@@ -248,20 +266,6 @@ const Events: React.FC<EventsProps> = ({ onSelectEvent }) => {
     展覽: "typeExhibition",
     講座: "typeTalk",
   };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      // TODO: Change to Convex
-      // const data = await getEvents();
-      // setEvents(data);
-      const events: Event[] = [];
-      setEvents(events);
-      setIsLoading(false);
-      // });
-    };
-    fetchData();
-  }, []);
 
   const featuredEvents = useMemo(
     () => events.filter((e) => e.isFeatured),
