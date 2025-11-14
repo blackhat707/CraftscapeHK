@@ -18,7 +18,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onClose }) => {
   }
 
   return (
-    <div className="h-full w-full bg-[var(--color-page-bg)]">
+    <div className="h-full w-full bg-[var(--color-page-bg)] relative flex flex-col">
       <div className="overflow-y-auto max-h-full pb-24">
         <header className="relative h-64">
           <img src={event.image} alt={event.title[language]} className="w-full h-full object-cover"/>
@@ -64,7 +64,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onClose }) => {
       </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-[var(--color-surface)]/70 backdrop-blur-xl border-t border-[var(--color-border)]">
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-[var(--color-surface)]/70 backdrop-blur-xl border-t border-[var(--color-border)]">
           <a
             href={event.url}
             target="_blank"

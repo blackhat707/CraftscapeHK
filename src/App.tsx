@@ -92,6 +92,10 @@ export default function App() {
   const { language } = useLanguage();
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [activeTab]);
+
+  useEffect(() => {
     const hasSeen = localStorage.getItem("hasSeenOnboarding");
     if (!hasSeen) {
       setShowOnboarding(true);

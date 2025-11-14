@@ -1,16 +1,72 @@
 // Google AI Studio Gemini Service
-const GOOGLE_AI_API_KEY = import.meta.env.GEMINI_API_KEY;
-const GEMINI_API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
+const GOOGLE_AI_API_KEY = import.meta.env.VITE_GOOGLE_AI_API_KEY;
+const GEMINI_API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent';
 
 interface GeminiResponse {
   candidates: Array<{
     content: {
       parts: Array<{
-        text: string;
+        text?: string;
+        inlineData?: {
+          mimeType: string;
+          data: string;
+        };
       }>;
     };
   }>;
 }
+
+const imageUrlToInlineData = async (
+  imageUrl: string
+): Promise<{ mimeType: string; data: string } | null> => {
+  try {
+    if (!imageUrl) return null;
+
+    if (imageUrl.startsWith("data:")) {
+      const match = imageUrl.match(/^data:(.*?);base64,(.*)$/);
+      if (!match) return null;
+      return {
+        mimeType: match[1] || "image/png",
+        data: match[2],
+      };
+    }
+
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      console.error("Failed to fetch image for Gemini:", response.status);
+      return null;
+    }
+
+    const blob = await response.blob();
+    const mimeType = blob.type || "image/png";
+
+    const dataUrl: string = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          resolve(reader.result);
+        } else {
+          reject(new Error("Unexpected FileReader result type"));
+        }
+      };
+      reader.onerror = () => reject(new Error("Failed to read image blob as data URL"));
+      reader.readAsDataURL(blob);
+    });
+
+    const match = dataUrl.match(/^data:(.*?);base64,(.*)$/);
+    if (!match) {
+      return null;
+    }
+
+    return {
+      mimeType: match[1] || mimeType,
+      data: match[2],
+    };
+  } catch (error) {
+    console.error("Error preparing image for Gemini:", error);
+    return null;
+  }
+};
 
 /**
  * Generate an image description for craft items using Gemini
@@ -64,7 +120,25 @@ ${referenceImage ? 'Reference image provided for context.' : ''}`;
     }
 
     const data: GeminiResponse = await response.json();
-    const generatedDescription = data.candidates[0]?.content?.parts[0]?.text;
+    const responseParts = data.candidates[0]?.content?.parts ?? [];
+
+    let imageBase64: string | null = null;
+    let mimeType = 'image/png';
+    let generatedDescription: string | undefined;
+
+    for (const part of responseParts) {
+      if (part.inlineData?.data) {
+        imageBase64 = part.inlineData.data;
+        if (part.inlineData.mimeType) {
+          mimeType = part.inlineData.mimeType;
+        }
+      } else if (part.text && !generatedDescription) {
+        generatedDescription = part.text;
+      }
+    }
+
+    const imageUrl =
+      imageBase64 ? `data:${mimeType};base64,${imageBase64}` : "https://placehold.co/600x400";
 
     console.log("=== Gemini Generated Description ===");
     console.log("Craft:", craftName);
@@ -74,7 +148,7 @@ ${referenceImage ? 'Reference image provided for context.' : ''}`;
 
     // In a real implementation, you would pass this description to DALL-E, Midjourney, or Stable Diffusion
     // For now, return placeholder but with the enhanced description logged
-    return "https://placehold.co/600x400";
+    return imageUrl;
 
   } catch (error) {
     console.error('Error generating craft image:', error);
@@ -112,14 +186,32 @@ Generate a description for creating a realistic try-on image that shows:
 - Professional photography quality
 - Flattering angles and composition
 
+Please follow strightly on the given face image and concept image.
 Focus on how the garment would naturally drape and fit on the person.`;
+
+    const requestParts: Array<{
+      text?: string;
+      inlineData?: { mimeType: string; data: string };
+    }> = [];
+
+    const faceInline = await imageUrlToInlineData(faceImageUrl);
+    if (faceInline) {
+      requestParts.push({ inlineData: faceInline });
+    }
+
+    if (conceptImage) {
+      const conceptInline = await imageUrlToInlineData(conceptImage);
+      if (conceptInline) {
+        requestParts.push({ inlineData: conceptInline });
+      }
+    }
+
+    requestParts.push({ text: tryOnPrompt });
 
     const requestBody = {
       contents: [{
-        parts: [{
-          text: tryOnPrompt
-        }]
-      }]
+        parts: requestParts,
+      }],
     };
 
     const response = await fetch(`${GEMINI_API_BASE_URL}?key=${GOOGLE_AI_API_KEY}`, {
@@ -135,7 +227,25 @@ Focus on how the garment would naturally drape and fit on the person.`;
     }
 
     const data: GeminiResponse = await response.json();
-    const generatedDescription = data.candidates[0]?.content?.parts[0]?.text;
+    const parts = data.candidates[0]?.content?.parts ?? [];
+
+    let imageBase64: string | null = null;
+    let mimeType = 'image/png';
+    let generatedDescription: string | undefined;
+
+    for (const part of parts) {
+      if (part.inlineData?.data) {
+        imageBase64 = part.inlineData.data;
+        if (part.inlineData.mimeType) {
+          mimeType = part.inlineData.mimeType;
+        }
+      } else if (part.text && !generatedDescription) {
+        generatedDescription = part.text;
+      }
+    }
+
+    const imageUrl =
+      imageBase64 ? `data:${mimeType};base64,${imageBase64}` : "https://placehold.co/600x400";
 
     console.log("=== Gemini Try-On Description ===");
     console.log("Craft:", craftName);
@@ -145,7 +255,7 @@ Focus on how the garment would naturally drape and fit on the person.`;
     console.log("==================================");
 
     // In a real implementation, this would use a try-on specific service
-    return "https://placehold.co/600x400";
+    return imageUrl;
 
   } catch (error) {
     console.error('Error generating try-on image:', error);

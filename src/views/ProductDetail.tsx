@@ -14,10 +14,19 @@ interface ProductDetailProps {
 const ProductDetail: React.FC<ProductDetailProps> = ({ product, onClose, onContact, onAiGen }) => {
   const { language, t } = useLanguage();
   const isLetterpress = product.category === 'letterpress';
-  
+  const rawDescription = product.full_description[language] || '';
+  const formattedDescription = rawDescription.replace(/\\n/g, '\n');
+  const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  }, [product]);
+
   return (
-    <div className="h-full w-full bg-[var(--color-page-bg)]">
-      <div className="overflow-y-auto max-h-full pb-4">
+    <div className="h-full w-full bg-[var(--color-page-bg)] relative flex flex-col">
+      <div ref={scrollContainerRef} className="overflow-y-auto max-h-full pb-24">
         <header className="relative h-64">
           <img src={product.image} alt={product.name[language]} className="w-full h-full object-cover"/>
           <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-page-bg)] to-transparent"></div>
@@ -35,7 +44,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onClose, onConta
         <div className="p-4 space-y-4 text-[var(--color-text-primary)]">
           <section>
             <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">{t('productDetailTitle')}</h2>
-            <div className="text-[15px] leading-relaxed text-[var(--color-text-secondary)] whitespace-pre-line">{product.full_description[language]}</div>
+            <div className="text-[15px] leading-relaxed text-[var(--color-text-secondary)] whitespace-pre-line">{formattedDescription}</div>
           </section>
           
           {isLetterpress && (
@@ -59,7 +68,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onClose, onConta
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-[var(--color-surface)]/70 backdrop-blur-xl border-t border-[var(--color-border)]">
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-[var(--color-surface)]/70 backdrop-blur-xl border-t border-[var(--color-border)]">
         <button
           onClick={onContact}
           className="w-full bg-[var(--color-primary-accent)] text-white text-center font-bold py-4 px-6 rounded-xl transition-transform duration-300 hover:scale-105"

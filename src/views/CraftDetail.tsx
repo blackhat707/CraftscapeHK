@@ -14,9 +14,17 @@ interface CraftDetailProps {
 const CraftDetail: React.FC<CraftDetailProps> = ({ craft, onClose, onStartCreation, onStartTextLab }) => {
   const { language, t } = useLanguage();
   const isLetterpress = craft.category === 'letterpress';
+  const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  }, [craft]);
 
   return (
     <motion.div 
+      ref={scrollContainerRef}
       className="h-full w-full bg-[var(--color-bg)] flex flex-col overflow-y-auto"
       initial={{ y: "100%", opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}

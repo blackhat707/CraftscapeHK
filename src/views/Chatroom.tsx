@@ -9,7 +9,7 @@ interface ChatroomProps {
 const Chatroom: React.FC<ChatroomProps> = ({ artisanName, onClose }) => {
   const { t } = useLanguage();
   return (
-    <div className="h-full w-full bg-[var(--color-bg)] flex flex-col">
+    <div className="h-full w-full bg-[var(--color-bg)] flex flex-col relative">
       <header className="flex items-center justify-between p-4 flex-shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)]/80 backdrop-blur-md">
         <div className="text-left">
           <h1 className="text-[22px] font-bold text-[var(--color-text-primary)]">
@@ -38,7 +38,7 @@ const Chatroom: React.FC<ChatroomProps> = ({ artisanName, onClose }) => {
       </header>
 
       {/* Message Area */}
-      <div className="flex-grow p-4 space-y-4 overflow-y-auto">
+      <div className="flex-grow p-4 pb-24 space-y-4 overflow-y-auto">
         {/* Example messages */}
         <div className="flex justify-start">
           <div className="bg-[var(--color-surface)] p-3 rounded-2xl max-w-xs border border-[var(--color-border)]">
@@ -54,7 +54,7 @@ const Chatroom: React.FC<ChatroomProps> = ({ artisanName, onClose }) => {
 
       {/* Input Area */}
       <div
-        className="fixed bottom-0 left-0 w-full z-30 p-4 bg-[var(--color-surface)]/70 backdrop-blur-xl border-t border-[var(--color-border)]"
+        className="absolute bottom-0 left-0 right-0 z-30 p-4 bg-[var(--color-surface)]/70 backdrop-blur-xl border-t border-[var(--color-border)]"
         style={{
           background: "var(--color-nav-bg, var(--color-surface))",
           backdropFilter: "blur(20px)",

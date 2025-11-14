@@ -84,7 +84,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({ onSelectProduct }) => {
     return (
         <div className="h-full w-full flex flex-col bg-[var(--color-bg)] overflow-y-auto">
             {/* Header */}
-            <div className="sticky top-0 z-10 bg-[var(--color-bg)]/80 backdrop-blur-sm border-b border-[var(--color-border)] px-4 py-4">
+            <div className="sticky top-0 z-10 bg-[var(--color-bg)]/80 backdrop-blur-sm border-b border-[var(--color-border)] px-4 pt-3 pb-2">
                 <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">
                     {t('marketplaceTitle')}
                 </h1>
@@ -94,7 +94,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({ onSelectProduct }) => {
             </div>
 
             {/* Search */}
-            <div className="px-4 py-6">
+            <div className="px-4 py-4">
                 <div className="relative">
                     <input
                         type="text"
@@ -112,7 +112,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({ onSelectProduct }) => {
             </div>
 
             {/* Vertical Product List */}
-            <div className="flex-1 pb-24">
+            <div className="flex-1 pb-8">
                 {isLoading ? (
                     <div className="px-4 space-y-4">
                         {[...Array(6)].map((_, i) => (
