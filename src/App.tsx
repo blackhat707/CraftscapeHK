@@ -316,7 +316,7 @@ export default function App() {
             <div
               className={`transition-transform duration-300 pb-24 ${
                 !isExploreView
-                  ? "transform scale-95 opacity-50"
+                  ? "absolute inset-0 transform scale-95 opacity-50 pointer-events-none"
                   : "transform scale-100 opacity-100"
               }`}
             >
