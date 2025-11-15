@@ -57,7 +57,7 @@ const Explore: React.FC<ExploreProps> = ({ onShowDetails }) => {
                     </h1>
                     <div className="flex items-center gap-2">
                         <span className="text-xs tracking-wide text-[var(--color-text-secondary)] uppercase">
-                            {language === 'zh' ? '館藏' : 'Collection'}
+                            {language !== 'en' ? '館藏' : 'Collection'}
                         </span>
                         <span className="text-sm font-medium text-[var(--color-text-primary)]">
                             {activeIndex + 1} / {crafts.length}

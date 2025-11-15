@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-// TODO: Change to Convex
-// import { getMessageThreads } from '../../services/apiService';
+import React, { useEffect, useState } from 'react';
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import type { MessageThread } from '../../types/types';
 import Spinner from '../../components/Spinner';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -43,7 +43,11 @@ const getPreviewText = (thread: MessageThread, language: 'en' | 'zh'): string =>
     return cleaned || originalText;
 };
 
-const MessageThreadCard: React.FC<{ thread: MessageThread; onSelect: () => void; language: 'en' | 'zh'; }> = ({ thread, onSelect, language }) => (
+const MessageThreadCard: React.FC<{
+  thread: MessageThread;
+  onSelect: () => void;
+  language: "en" | "zh";
+}> = ({ thread, onSelect, language }) => (
     <button onClick={onSelect} className="w-full bg-[var(--color-surface)] p-4 rounded-2xl flex items-center space-x-4 border border-[var(--color-border)] ios-shadow text-left transition-transform duration-200 ease-in-out hover:scale-[1.02]">
         <div className="relative flex-shrink-0">
             <img src={thread.avatar} alt={thread.customerName} className="w-14 h-14 object-cover rounded-full" />
@@ -69,25 +73,26 @@ interface MessagesProps {
 
 const Messages: React.FC<MessagesProps> = ({ onSelectThread }) => {
     const [threads, setThreads] = useState<MessageThread[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const convexThreads = useQuery(api.data.getMessageThreads);
+    const isLoading = convexThreads === undefined;
     const { t, language } = useLanguage();
 
     useEffect(() => {
-        const fetchData = async () => {
-            setIsLoading(true);
-            try {
-                // TODO: Change to Convex
-                // const data = await getMessageThreads();
-                const data: MessageThread[] = [];
-                setThreads(data);
-            } catch (error) {
-                console.error("Failed to fetch message threads:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchData();
-    }, []);
+        if (!convexThreads) {
+            setThreads([]);
+            return;
+        }
+        const mapped: MessageThread[] = convexThreads.map((thread) => ({
+            id: thread.threadId,
+            customerName: thread.customerName,
+            lastMessage: thread.lastMessage,
+            timestamp: thread.timestamp,
+            unread: thread.unread,
+            avatar: thread.avatar,
+            productId: thread.productId,
+        }));
+        setThreads(mapped);
+    }, [convexThreads]);
     
     const unreadCount = threads.filter(t => t.unread).length;
 
@@ -99,10 +104,21 @@ const Messages: React.FC<MessagesProps> = ({ onSelectThread }) => {
             </header>
 
             <div className="flex-grow p-6 space-y-3 pb-24">
-                {isLoading ? <Spinner text={t('spinnerMessages')} /> : (
-                    threads.map(thread => (
-                        <MessageThreadCard key={thread.id} thread={thread} language={language} onSelect={() => onSelectThread(thread)} />
-                    ))
+                {isLoading ? (
+                    <Spinner text={t('spinnerMessages')} />
+                ) : (
+                    threads.map(thread => {
+                        const previewLanguage: "en" | "zh" =
+                          language === "en" ? "en" : "zh";
+                        return (
+                          <MessageThreadCard
+                            key={thread.id}
+                            thread={thread}
+                            language={previewLanguage}
+                            onSelect={() => onSelectThread(thread)}
+                          />
+                        );
+                    })
                 )}
             </div>
         </div>

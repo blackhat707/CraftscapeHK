@@ -58,8 +58,11 @@ export default defineSchema({
     artisan: localizedString,
     full_description: localizedString,
     category: v.optional(v.string()),
+    // Link to the Convex Auth user who owns/created this product (optional for seeded data)
+    ownerUserId: v.optional(v.id("users")),
   }).index("by_productId", ["productId"])
-    .index("by_category", ["category"]),
+    .index("by_category", ["category"])
+    .index("by_ownerUserId", ["ownerUserId"]),
 
   // Master artisan profiles
   artisans: defineTable({
@@ -83,6 +86,9 @@ export default defineSchema({
     quantity: v.number(),
     total: v.number(),
     date: v.string(),
+    // Optional links to authenticated users for analytics and filtering
+    customerUserId: v.optional(v.id("users")),
+    artisanUserId: v.optional(v.id("users")),
     status: v.union(
       v.literal("待處理"),
       v.literal("已發貨"), 
@@ -91,7 +97,9 @@ export default defineSchema({
     ),
   }).index("by_orderId", ["orderId"])
     .index("by_status", ["status"])
-    .index("by_customerName", ["customerName"]),
+    .index("by_customerName", ["customerName"])
+    .index("by_customerUserId", ["customerUserId"])
+    .index("by_artisanUserId", ["artisanUserId"]),
 
   // Message threads between customers and artisans
   messageThreads: defineTable({
@@ -102,9 +110,14 @@ export default defineSchema({
     unread: v.boolean(),
     avatar: v.string(),
     productId: v.number(),
+    // Optional Convex Auth user links for both sides of the conversation
+    customerUserId: v.optional(v.id("users")),
+    artisanUserId: v.optional(v.id("users")),
   }).index("by_threadId", ["threadId"])
     .index("by_customerName", ["customerName"])
-    .index("by_unread", ["unread"]),
+    .index("by_unread", ["unread"])
+    .index("by_customerUserId", ["customerUserId"])
+    .index("by_artisanUserId", ["artisanUserId"]),
 
   // Individual chat messages
   chatMessages: defineTable({
@@ -115,6 +128,8 @@ export default defineSchema({
     translatedText: v.optional(v.string()),
     language: v.union(v.literal("en"), v.literal("zh")),
     timestamp: v.string(),
+    // Optional structured negotiation field, e.g. proposed price in HKD
+    offerPrice: v.optional(v.number()),
   }).index("by_threadId", ["threadId"])
     .index("by_messageId", ["messageId"]),
 

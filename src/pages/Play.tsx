@@ -37,10 +37,10 @@ const Play: React.FC = () => {
         <div className="h-full w-full flex flex-col bg-[var(--color-page-bg)] text-[var(--color-text-primary)] overflow-y-auto">
             <header className="p-6 pb-2 sticky top-0 bg-[var(--color-page-bg)]/80 backdrop-blur-md z-10">
                 <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">
-                    {language === 'zh' ? '遊玩' : 'Play'}
+                    {language !== 'en' ? '遊玩' : 'Play'}
                 </h1>
                 <p className="text-[17px] text-[var(--color-text-secondary)]">
-                    {language === 'zh' ? '中國結 AR 體驗' : 'Chinese Knot AR Experience'}
+                    {language !== 'en' ? '中國結 AR 體驗' : 'Chinese Knot AR Experience'}
                 </p>
             </header>
 
@@ -57,16 +57,16 @@ const Play: React.FC = () => {
                         </div>
 
                         <h2 className="text-xl font-bold text-[var(--color-primary-accent)] mb-2">
-                            {language === 'zh' ? '中國結' : 'Chinese Knot'}
+                            {language !== 'en' ? '中國結' : 'Chinese Knot'}
                         </h2>
 
                         <p className="text-[var(--color-text-secondary)] text-sm mb-6">
                             {isIOS ? (
-                                language === 'zh'
+                                language !== 'en'
                                     ? '點擊「立即遊玩」使用 Quick Look 體驗 AR，或下載檔案供稍後使用'
                                     : 'Tap "Play now!" to experience AR with Quick Look, or download for later use'
                             ) : (
-                                language === 'zh'
+                                language !== 'en'
                                     ? '下載 3D 模型檔案以體驗 AR'
                                     : 'Download 3D model file for AR experience'
                             )}
@@ -85,7 +85,7 @@ const Play: React.FC = () => {
                                         </svg>
                                     </div>
                                     <span className="text-center font-semibold">
-                                        {language === 'zh' ? '立即遊玩！' : 'Play now!'}
+                                        {language !== 'en' ? '立即遊玩！' : 'Play now!'}
                                     </span>
                                 </button>
                                 <button
@@ -98,7 +98,7 @@ const Play: React.FC = () => {
                                         </svg>
                                     </div>
                                     <span className="text-center font-semibold">
-                                        {language === 'zh' ? '下載 AR 模型' : 'Download AR Model'}
+                                        {language !== 'en' ? '下載 AR 模型' : 'Download AR Model'}
                                     </span>
                                 </button>
                             </div>
@@ -113,7 +113,7 @@ const Play: React.FC = () => {
                                     </svg>
                                 </div>
                                 <span className="text-center font-semibold">
-                                    {language === 'zh' ? '下載 AR 模型' : 'Download AR Model'}
+                                {language !== 'en' ? '下載 AR 模型' : 'Download AR Model'}
                                 </span>
                             </button>
                         )}

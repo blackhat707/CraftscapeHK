@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-// TODO: Change to Convex
-// import { getOrders } from '../../services/apiService';
+import React from 'react';
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import type { Order, OrderStatus } from '../../types/types';
 import Spinner from '../../components/Spinner';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -43,21 +43,38 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
 }
 
 const OrderManagement: React.FC = () => {
-    const [orders, setOrders] = useState<Order[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const { t } = useLanguage();
+    const convexOrders = useQuery(api.data.getOrders);
+    const isLoading = convexOrders === undefined;
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setIsLoading(true);
-            // TODO: Change to Convex
-            // const data = await getOrders();
-            const data: Order[] = [];
-            setOrders(data);
-            setIsLoading(false);
-        };
-        fetchData();
-    }, []);
+    const orders: Order[] = (convexOrders ?? []).map((order) => ({
+        id: order.orderId,
+        customerName: order.customerName,
+        product: {
+            id: order.productSnapshot?.productId ?? order.productId, // fallback
+            name: order.productSnapshot.name,
+            price: order.productSnapshot.price,
+            priceDisplay: {
+                zh: `HK$ ${order.productSnapshot.price}`,
+                en: `HK$ ${order.productSnapshot.price}`,
+            },
+            priceSubDisplay: undefined,
+            image: order.productSnapshot.image,
+            artisan: {
+                zh: '',
+                en: '',
+            },
+            full_description: {
+                zh: '',
+                en: '',
+            },
+            category: undefined,
+        },
+        quantity: order.quantity,
+        total: order.total,
+        date: order.date,
+        status: order.status as OrderStatus,
+    }));
 
     return (
         <div className="h-full w-full flex flex-col bg-[var(--color-bg)] overflow-y-auto">

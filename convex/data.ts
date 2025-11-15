@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { getAuthUserId } from "@convex-dev/auth/server";
 
 // Queries to fetch data
 export const getProducts = query({
@@ -103,6 +104,261 @@ export const getUnreadMessages = query({
       .query("messageThreads")
       .withIndex("by_unread", (q) => q.eq("unread", true))
       .collect();
+  },
+});
+
+// Artisan-specific helper to list products created by the current authenticated user
+export const getProductsForCurrentArtisan = query({
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      // Unauthenticated users don't own any artisan inventory
+      return [];
+    }
+    return await ctx.db
+      .query("products")
+      .withIndex("by_ownerUserId", (q) => q.eq("ownerUserId", userId))
+      .collect();
+  },
+});
+
+// Mutation for artisans to create/upload a new product
+export const createArtisanProduct = mutation({
+  args: {
+    name: v.string(),
+    description: v.string(),
+    price: v.number(),
+    image: v.string(),
+    category: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Must be signed in as an artisan to create products");
+    }
+
+    const user = await ctx.db.get(userId);
+    const artisanDisplayName =
+      (user as any)?.name ??
+      (user as any)?.username ??
+      (user as any)?.email ??
+      "Artisan";
+
+    // Compute a new numeric productId, continuing from existing seeded data.
+    const last = await ctx.db
+      .query("products")
+      .withIndex("by_productId", (q) => q.gt("productId", 0))
+      .order("desc")
+      .first();
+
+    const nextProductId = (last?.productId ?? 0) + 1;
+
+    const priceDisplay = {
+      zh: `HK$ ${args.price}`,
+      en: `HK$ ${args.price}`,
+    };
+
+    const productDocId = await ctx.db.insert("products", {
+      productId: nextProductId,
+      name: { zh: args.name, en: args.name },
+      price: args.price,
+      priceDisplay,
+      priceSubDisplay: undefined,
+      image: args.image,
+      artisan: { zh: artisanDisplayName, en: artisanDisplayName },
+      full_description: { zh: args.description, en: args.description },
+      category: args.category,
+      ownerUserId: userId,
+    });
+
+    return await ctx.db.get(productDocId);
+  },
+});
+
+// Mutation for buyers to place an order for a product (simple ecommerce flow)
+export const createOrder = mutation({
+  args: {
+    productDocId: v.id("products"),
+    quantity: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Must be signed in to place an order");
+    }
+
+    const user = await ctx.db.get(userId);
+    const customerName =
+      (user as any)?.name ??
+      (user as any)?.username ??
+      (user as any)?.email ??
+      "Customer";
+
+    const product = await ctx.db.get(args.productDocId);
+    if (!product) {
+      throw new Error("Product not found");
+    }
+
+    const total = product.price * args.quantity;
+    const now = new Date();
+    const orderId = `ORD-${now.getTime()}-${Math.floor(
+      Math.random() * 1000
+    )}`;
+
+    const orderDocId = await ctx.db.insert("orders", {
+      orderId,
+      customerName,
+      productId: args.productDocId,
+      productSnapshot: {
+        name: product.name,
+        price: product.price,
+        image: product.image,
+      },
+      quantity: args.quantity,
+      total,
+      date: now.toISOString(),
+      status: "待處理",
+      customerUserId: userId,
+      artisanUserId: product.ownerUserId ?? undefined,
+    });
+
+    return await ctx.db.get(orderDocId);
+  },
+});
+
+// Chat messages for a specific thread
+export const getChatMessagesByThread = query({
+  args: {
+    threadId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("chatMessages")
+      .withIndex("by_threadId", (q) => q.eq("threadId", args.threadId))
+      .collect();
+  },
+});
+
+// Get or create a message thread for a given product for the current user.
+// This powers the buyer ↔ artisan negotiation chat like Carousell.
+export const getOrCreateThreadForProduct = mutation({
+  args: {
+    productNumericId: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Must be signed in to start a chat");
+    }
+
+    const user = await ctx.db.get(userId);
+    const customerName =
+      (user as any)?.name ??
+      (user as any)?.email ??
+      "Anonymous";
+
+    // Try to find an existing thread for this user + product
+    const existing = await ctx.db
+      .query("messageThreads")
+      .withIndex("by_customerUserId", (q) => q.eq("customerUserId", userId))
+      .collect();
+
+    const existingForProduct = existing.find(
+      (thread) => thread.productId === args.productNumericId
+    );
+    if (existingForProduct) {
+      return existingForProduct;
+    }
+
+    // Look up product so we can infer artisan metadata if present
+    const productDoc = await ctx.db
+      .query("products")
+      .withIndex("by_productId", (q) =>
+        q.eq("productId", args.productNumericId)
+      )
+      .first();
+
+    if (!productDoc) {
+      throw new Error("Product not found");
+    }
+
+    // In a richer model we would resolve the artisan user ID from the product owner.
+    const artisanUserId = productDoc.ownerUserId ?? null;
+
+    const now = new Date();
+    const threadId = `THREAD-${now.getTime()}-${Math.floor(
+      Math.random() * 1000
+    )}`;
+
+    const newThreadId = await ctx.db.insert("messageThreads", {
+      threadId,
+      customerName,
+      lastMessage: "",
+      timestamp: now.toLocaleString("zh-HK", {
+        hour12: true,
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+      unread: false,
+      avatar: "/user-avatar.jpg",
+      productId: args.productNumericId,
+      customerUserId: userId,
+      artisanUserId: artisanUserId ?? undefined,
+    });
+
+    const created = await ctx.db.get(newThreadId);
+    return created;
+  },
+});
+
+// Send a chat message and update the thread preview/unread state.
+export const sendChatMessage = mutation({
+  args: {
+    threadId: v.string(),
+    sender: v.union(v.literal("customer"), v.literal("artisan")),
+    text: v.string(),
+    language: v.union(v.literal("en"), v.literal("zh")),
+    offerPrice: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const now = new Date();
+    const timestamp = now.toLocaleTimeString("zh-HK", {
+      hour12: true,
+      hour: "numeric",
+      minute: "2-digit",
+    });
+
+    const messageId = `MSG-${now.getTime()}-${Math.floor(
+      Math.random() * 1000
+    )}`;
+
+    const messageDocId = await ctx.db.insert("chatMessages", {
+      messageId,
+      threadId: args.threadId,
+      sender: args.sender,
+      originalText: args.text,
+      translatedText: undefined,
+      language: args.language,
+      timestamp,
+      offerPrice: args.offerPrice,
+    });
+
+    // Update thread preview + unread flag
+    const [thread] = await ctx.db
+      .query("messageThreads")
+      .withIndex("by_threadId", (q) => q.eq("threadId", args.threadId))
+      .take(1);
+
+    if (thread) {
+      await ctx.db.patch(thread._id, {
+        lastMessage: args.text,
+        timestamp,
+        // If the customer sends a message, mark as unread for artisan.
+        unread: args.sender === "customer",
+      });
+    }
+
+    return await ctx.db.get(messageDocId);
   },
 });
 
@@ -242,6 +498,8 @@ export const initializeOrders = mutation({
       total: v.number(),
       date: v.string(),
       status: v.union(v.literal("待處理"), v.literal("已發貨"), v.literal("已完成"), v.literal("已取消")),
+      customerUserId: v.optional(v.id("users")),
+      artisanUserId: v.optional(v.id("users")),
     })),
   },
   handler: async (ctx, args) => {
@@ -270,6 +528,8 @@ export const initializeMessageThreads = mutation({
       unread: v.boolean(),
       avatar: v.string(),
       productId: v.number(),
+      customerUserId: v.optional(v.id("users")),
+      artisanUserId: v.optional(v.id("users")),
     })),
   },
   handler: async (ctx, args) => {

@@ -275,7 +275,7 @@ const OnboardingGuide: React.FC<OnboardingGuideProps> = ({ onClose }) => {
   );
 
   const isLastStep = step === slides.length - 1;
-  const backLabel = language === 'zh' ? '返回' : 'Back';
+  const backLabel = language !== 'en' ? '返回' : 'Back';
 
   const handleNext = () => {
     if (isLastStep) {

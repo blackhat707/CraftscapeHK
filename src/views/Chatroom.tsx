@@ -1,13 +1,51 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { useLanguage } from "../contexts/LanguageContext";
+import type { ChatMessage } from "../types/types";
 
 interface ChatroomProps {
+  threadId: string;
   artisanName: string;
   onClose: () => void;
 }
 
-const Chatroom: React.FC<ChatroomProps> = ({ artisanName, onClose }) => {
+const Chatroom: React.FC<ChatroomProps> = ({ artisanName, onClose, threadId }) => {
   const { t } = useLanguage();
+
+  const convexMessages = useQuery(api.data.getChatMessagesByThread, {
+    threadId,
+  });
+
+  const messages: ChatMessage[] =
+    convexMessages?.map((m) => ({
+      id: m.messageId,
+      sender: m.sender,
+      originalText: m.originalText,
+      translatedText: m.translatedText ?? undefined,
+      language: m.language,
+      timestamp: m.timestamp,
+    })) ?? [];
+
+  const [draft, setDraft] = useState("");
+  const sendChatMessage = useMutation(api.data.sendChatMessage);
+
+  const handleSend = useCallback(
+    async (event: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      const text = draft.trim();
+      if (!text) return;
+      await sendChatMessage({
+        threadId,
+        sender: "customer",
+        text,
+        language: "en",
+        offerPrice: undefined,
+      });
+      setDraft("");
+    },
+    [draft, sendChatMessage, threadId]
+  );
   return (
     <div className="h-full w-full bg-[var(--color-bg)] flex flex-col relative">
       <header className="flex items-center justify-between p-4 flex-shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)]/80 backdrop-blur-md">
@@ -37,22 +75,25 @@ const Chatroom: React.FC<ChatroomProps> = ({ artisanName, onClose }) => {
         </button>
       </header>
 
-      {/* Message Area */}
       <div className="flex-grow p-4 pb-24 space-y-4 overflow-y-auto">
-        {/* Example messages */}
-        <div className="flex justify-start">
-          <div className="bg-[var(--color-surface)] p-3 rounded-2xl max-w-xs border border-[var(--color-border)]">
-            <p>你好，請問關於這件商品，可以訂製嗎？</p>
+        {messages.map((m) => (
+          <div
+            key={m.id}
+            className={`flex ${m.sender === "customer" ? "justify-end" : "justify-start"}`}
+          >
+            <div
+              className={`p-3 rounded-2xl max-w-xs ${
+                m.sender === "customer"
+                  ? "bg-[var(--color-primary-accent)] text-white"
+                  : "bg-[var(--color-surface)] border border-[var(--color-border)]"
+              }`}
+            >
+              <p>{m.originalText}</p>
+            </div>
           </div>
-        </div>
-        <div className="flex justify-end">
-          <div className="bg-[var(--color-primary-accent)] text-white p-3 rounded-2xl max-w-xs">
-            <p>你好！可以的，請問有什麼想法嗎？</p>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Input Area */}
       <div
         className="absolute bottom-0 left-0 right-0 z-30 p-4 bg-[var(--color-surface)]/70 backdrop-blur-xl border-t border-[var(--color-border)]"
         style={{
@@ -63,14 +104,20 @@ const Chatroom: React.FC<ChatroomProps> = ({ artisanName, onClose }) => {
           borderRadius: "16px 16px 0 0",
           boxShadow: "0 -4px 20px rgba(0,0,0,0.08)",
         }}
+        onSubmit={handleSend}
       >
         <div className="flex items-center space-x-2">
           <input
             type="text"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
             placeholder={t("chatroomPlaceholder")}
             className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-full py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-accent)]"
           />
-          <button className="bg-[var(--color-primary-accent)] text-white p-3 rounded-full flex-shrink-0">
+          <button
+            type="submit"
+            className="bg-[var(--color-primary-accent)] text-white p-3 rounded-full flex-shrink-0"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-6 w-6"

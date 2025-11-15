@@ -69,11 +69,18 @@ const Auth: React.FC<AuthProps> = ({ onClose, defaultMode = 'login' }) => {
     setIsLoading(true);
 
     try {
-      if (mode === 'login') {
-        await signIn("password", { email, password });
-      } else {
-        await signIn("password", { email, password, username, role });
+      // Use the same pattern as the Convex example in `App Convex.tsx`,
+      // sending credentials (including the `flow` param) via FormData.
+      const formData = new FormData();
+      formData.set('flow', mode === 'login' ? 'signIn' : 'signUp');
+      formData.set('email', email);
+      formData.set('password', password);
+      if (mode === 'register') {
+        formData.set('username', username);
+        formData.set('role', role);
       }
+
+      await signIn('password', formData);
       onClose?.();
     } catch (err: any) {
       console.error('Auth error:', err);

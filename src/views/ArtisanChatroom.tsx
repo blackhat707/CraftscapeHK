@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import type { MessageThread, Product, ChatMessage } from "../types/types";
 import { useLanguage } from "../contexts/LanguageContext";
 
@@ -63,44 +65,45 @@ const ArtisanChatroom: React.FC<ArtisanChatroomProps> = ({
   const [viewMode, setViewMode] = useState<"translated" | "original">(
     "translated"
   );
-  const initialMessages = useMemo<ChatMessage[]>(() => {
-    if (thread.messages && thread.messages.length > 0) {
-      return thread.messages;
+  const convexMessages = useQuery(api.data.getChatMessagesByThread, {
+    threadId: thread.id,
+  });
+
+  const messages: ChatMessage[] = useMemo(() => {
+    if (!convexMessages || convexMessages.length === 0) {
+      if (!thread.lastMessage) {
+        return [];
+      }
+      return [
+        {
+          id: `${thread.id}-initial`,
+          sender: "customer",
+          originalText: thread.lastMessage,
+          translatedText: thread.lastMessage,
+          language: "zh",
+          timestamp: thread.timestamp,
+        },
+      ];
     }
 
-    return [
-      {
-        id: `${thread.id}-initial`,
-        sender: "customer",
-        originalText: thread.lastMessage,
-        translatedText: thread.lastMessage,
-        language: "zh",
-        timestamp: thread.timestamp,
-      },
-    ];
-  }, [thread]);
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+    return convexMessages.map((m) => ({
+      id: m.messageId,
+      sender: m.sender,
+      originalText: m.originalText,
+      translatedText: m.translatedText ?? undefined,
+      language: m.language,
+      timestamp: m.timestamp,
+    }));
+  }, [convexMessages, thread]);
+
   const [draft, setDraft] = useState("");
   const [draftTranslation, setDraftTranslation] = useState("");
+  const sendChatMessage = useMutation(api.data.sendChatMessage);
 
   useEffect(() => {
-    setMessages(
-      thread.messages && thread.messages.length > 0
-        ? thread.messages
-        : [
-            {
-              id: `${thread.id}-initial`,
-              sender: "customer",
-              originalText: thread.lastMessage,
-              translatedText: thread.lastMessage,
-              language: "zh",
-              timestamp: thread.timestamp,
-            },
-          ]
-    );
     setDraft("");
     setDraftTranslation("");
-  }, [thread]);
+  }, [thread.id]);
 
   const getLanguageLabel = useCallback(
     (code: "en" | "zh") =>
@@ -293,25 +296,19 @@ const ArtisanChatroom: React.FC<ArtisanChatroomProps> = ({
         trimmed,
         t("artisanChatroomAutoTranslationFallback")
       );
-      const timestamp = new Date().toLocaleTimeString([], {
-        hour: "numeric",
-        minute: "2-digit",
+
+      void sendChatMessage({
+        threadId: thread.id,
+        sender: "artisan",
+        text: trimmed,
+        language: "zh",
+        offerPrice: undefined,
       });
 
-      const newMessage: ChatMessage = {
-        id: `artisan-${Date.now()}`,
-        sender: "artisan",
-        originalText: trimmed,
-        translatedText: englishVersion,
-        language: "zh",
-        timestamp,
-      };
-
-      setMessages((prev) => [...prev, newMessage]);
       setDraft("");
       setDraftTranslation("");
     },
-    [draft, t]
+    [draft, t, sendChatMessage, thread.id]
   );
 
   const translationToggle = (

@@ -1,9 +1,10 @@
 
 
 export interface LocalizedString {
-    zh: string;
-    en: string;
-  }
+  zh: string;
+  en: string;
+  zhHans?: string;
+}
   
   export interface Craft {
     id: number;

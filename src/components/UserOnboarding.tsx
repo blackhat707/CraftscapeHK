@@ -46,6 +46,7 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({ onComplete }) => {
       const faceLabel = {
         en: 'My Face',
         zh: '我的臉孔',
+        zhHans: '我的脸孔',
       };
 
       addFaceProfile({
@@ -250,8 +251,10 @@ const UserOnboarding: React.FC<UserOnboardingProps> = ({ onComplete }) => {
                   </div>
                   <div className="text-sm text-[var(--color-text-secondary)]">
                     {selectedInterests.length > 0
-                      ? `${selectedInterests.length} ${language === 'zh' ? '個興趣' : 'interests'}`
-                      : language === 'zh' ? '準備探索' : 'Ready to explore'}
+                      ? `${selectedInterests.length} ${
+                          language !== 'en' ? '個興趣' : 'interests'
+                        }`
+                      : language !== 'en' ? '準備探索' : 'Ready to explore'}
                   </div>
                 </div>
               </div>

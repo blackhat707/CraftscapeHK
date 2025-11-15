@@ -122,7 +122,7 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
           file.name.replace(/\.[^/.]+$/, "") ||
           t("profileWardrobeUploadFallback");
         addFaceProfile({
-          label: { zh: labelText, en: labelText },
+          label: { zh: labelText, zhHans: labelText, en: labelText },
           imageUrl,
           source: "upload",
         });
@@ -165,17 +165,17 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
             className="bg-[var(--color-surface)] rounded-2xl shadow-2xl p-6 max-w-sm w-full"
           >
             <h3 className="text-xl font-bold text-[var(--color-text-primary)] mb-4">
-              {language === 'zh' ? '確認登出' : 'Confirm Logout'}
+              {language !== "en" ? "確認登出" : "Confirm Logout"}
             </h3>
             <p className="text-[var(--color-text-secondary)] mb-6">
-              {language === 'zh' ? '確定要登出嗎？' : 'Are you sure you want to log out?'}
+              {language !== "en" ? "確定要登出嗎？" : "Are you sure you want to log out?"}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowLogoutConfirm(false)}
                 className="flex-1 py-3 px-4 bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] font-bold rounded-lg hover:bg-[var(--color-page-bg)] transition-colors"
               >
-                {language === 'zh' ? '取消' : 'Cancel'}
+                {language !== "en" ? "取消" : "Cancel"}
               </button>
               <button
                 onClick={handleLogout}
@@ -215,7 +215,7 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
                     creations: aiCreations.length,
                   })
                 ) : (
-                  language === 'zh' ? '訪客模式' : 'Guest Mode'
+                  language !== "en" ? "訪客模式" : "Guest Mode"
                 )}
               </p>
             </div>
@@ -316,6 +316,32 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
                 />
               )}
               <span className="relative">繁體中文</span>
+            </button>
+            <button
+              onClick={() => setLanguage("zhHans")}
+              className={`relative w-full py-3 rounded-lg text-sm font-semibold transition-colors duration-300 z-10 ${
+                language === "zhHans" ? "" : "text-[var(--color-text-inactive)]"
+              }`}
+              style={
+                language === "zhHans"
+                  ? {
+                      color:
+                        theme === "dark"
+                          ? "var(--color-text-secondary)"
+                          : "var(--color-text-black)",
+                    }
+                  : undefined
+              }
+            >
+              {language === "zhHans" && (
+                <motion.div
+                  layoutId="languageBubble"
+                  className="absolute inset-0 bg-[var(--color-surface)] rounded-lg ios-shadow"
+                  style={{ borderRadius: "0.5rem" }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+              <span className="relative">简体中文</span>
             </button>
             <button
               onClick={() => setLanguage("en")}

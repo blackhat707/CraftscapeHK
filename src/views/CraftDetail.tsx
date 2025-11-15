@@ -122,7 +122,7 @@ const CraftDetail: React.FC<CraftDetailProps> = ({ craft, onClose, onStartCreati
           </h3>
           <p className="text-base text-[var(--color-text-secondary)] mb-8 leading-relaxed">
             {isLetterpress 
-              ? (language === 'zh' 
+              ? (language !== 'en'
                   ? '使用我們的 AI 工具設計您的專屬活字印刷作品，結合傳統工藝與現代創意。' 
                   : 'Use our AI tools to design your custom letterpress text layout, combining traditional craftsmanship with modern creativity.')
               : t('craftDetailCtaDesc')

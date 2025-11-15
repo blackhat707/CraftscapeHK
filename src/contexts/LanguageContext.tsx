@@ -1,10 +1,22 @@
-import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
-import { zh } from '../locales/zh';
-import { en } from '../locales/en';
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  ReactNode,
+  useCallback,
+} from "react";
+import { zh } from "../locales/zh";
+import { zhHans } from "../locales/zhHans";
+import { en } from "../locales/en";
 
-export type Language = 'zh' | 'en';
+export type Language = "zh" | "zhHans" | "en";
 
-const translations = { zh, en };
+const translations: Record<Language, typeof zh> = {
+  zh,
+  zhHans,
+  en,
+};
 
 interface LanguageContextType {
   language: Language;
@@ -20,8 +32,16 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedLanguage = localStorage.getItem('language') as Language | null;
-      if (storedLanguage && ['zh', 'en'].includes(storedLanguage)) {
+      if (storedLanguage && (["zh", "zhHans", "en"] as Language[]).includes(storedLanguage)) {
         setLanguage(storedLanguage);
+        return;
+      }
+
+      // Basic browser-language hint for first-time visitors
+      const navLang = window.navigator.language.toLowerCase();
+      if (navLang.startsWith("zh")) {
+        // Default Chinese users to Simplified first
+        setLanguage("zhHans");
       }
     }
   }, []);

@@ -20,7 +20,8 @@ import OnboardingGuide from "./components/OnboardingGuide";
 import UserOnboarding from "./components/UserOnboarding";
 import Auth from "./pages/Auth";
 import { useLanguage } from "./contexts/LanguageContext";
-import { useConvexAuth } from "convex/react";
+import { useConvexAuth, useMutation, useQuery } from "convex/react";
+import { api } from "../convex/_generated/api";
 
 // Artisan Pages
 import Dashboard from "./pages/artisan/Dashboard";
@@ -79,6 +80,7 @@ export default function App() {
   const [selectedCraft, setSelectedCraft] = useState<Craft | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
 
   // Artisan view management
   const [currentArtisanView, setCurrentArtisanView] = useState<ArtisanView>(
@@ -137,6 +139,10 @@ export default function App() {
     setCurrentView(View.EventDetail);
   }, []);
 
+  const convexProducts = useQuery(api.data.getProducts);
+  const createThreadForProduct = useMutation(api.data.getOrCreateThreadForProduct);
+  const createOrderMutation = useMutation(api.data.createOrder);
+
   const handleShowProductDetails = useCallback((product: Product) => {
     setSelectedProduct(product);
     setCurrentView(View.ProductDetail);
@@ -148,11 +154,35 @@ export default function App() {
     }
   }, [selectedCraft]);
 
-  const handleOpenChatroom = useCallback(() => {
-    if (selectedProduct) {
-      setCurrentView(View.Chatroom);
+  const handleOpenChatroom = useCallback(async () => {
+    if (!selectedProduct) return;
+    const thread = await createThreadForProduct({
+      productNumericId: selectedProduct.id,
+    });
+    if (thread) {
+      setCurrentThreadId(thread.threadId);
     }
-  }, [selectedProduct]);
+    setCurrentView(View.Chatroom);
+  }, [createThreadForProduct, selectedProduct]);
+
+  const handleBuyProduct = useCallback(async () => {
+    if (!selectedProduct || !convexProducts) return;
+    const productDoc = convexProducts.find(
+      (p) => p.productId === selectedProduct.id
+    );
+    if (!productDoc) return;
+    await createOrderMutation({
+      productDocId: productDoc._id,
+      quantity: 1,
+    });
+    const thread = await createThreadForProduct({
+      productNumericId: selectedProduct.id,
+    });
+    if (thread) {
+      setCurrentThreadId(thread.threadId);
+    }
+    setCurrentView(View.Chatroom);
+  }, [selectedProduct, convexProducts, createOrderMutation, createThreadForProduct]);
 
   const handleCloseStudio = useCallback(
     () => setCurrentView(View.CraftDetail),
@@ -394,7 +424,8 @@ export default function App() {
                   <ProductDetail
                     product={selectedProduct}
                     onClose={handleCloseProductDetail}
-                    onContact={handleOpenChatroom}
+                    onContact={() => void handleOpenChatroom()}
+                    onBuy={() => void handleBuyProduct()}
                     onAiGen={handleOpenTextLab}
                   />
                 </motion.div>
@@ -413,7 +444,7 @@ export default function App() {
                 </motion.div>
               )}
 
-              {currentView === View.Chatroom && selectedProduct && (
+              {currentView === View.Chatroom && selectedProduct && currentThreadId && (
                 <motion.div
                   key="chatroom"
                   className="absolute inset-0 z-30"
@@ -423,6 +454,7 @@ export default function App() {
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 >
                   <Chatroom
+                    threadId={currentThreadId}
                     artisanName={selectedProduct.artisan[language]}
                     onClose={handleCloseChatroom}
                   />
